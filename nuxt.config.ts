@@ -31,6 +31,9 @@ export default defineNuxtConfig({
 
   pwa: {
     registerType: 'autoUpdate',
+    client: {
+      installPrompt: true
+    },
     manifest: {
       name: 'Fyrush',
       short_name: 'Fyrush',
