@@ -5,6 +5,7 @@ export default defineNuxtConfig({
     '@nuxt/ui',
     '@nuxt/image',
     '@nuxthub/core',
+    'nuxt-maplibre',
     '@vite-pwa/nuxt'
   ],
 
@@ -14,11 +15,29 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
+  runtimeConfig: {
+    public: {
+      mapStyleUrl: 'https://demotiles.maplibre.org/style.json',
+      barangayCenter: [123.622003, 12.3717467]
+    }
+  },
+
   routeRules: {
     '/': { prerender: true }
   },
 
   compatibilityDate: '2025-01-15',
+
+  nitro: {
+    experimental: {
+      websocket: true
+    }
+  },
+
+  hub: {
+    db: 'sqlite',
+    kv: true
+  },
 
   eslint: {
     config: {
