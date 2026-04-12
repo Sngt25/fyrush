@@ -13,7 +13,7 @@ useHead({
   }
 })
 
-const title = 'Nuxt Starter Template'
+const title = 'Fyrush'
 const description = 'Fyrush is a map-first fire alert and BFP response system for Barangay Kalipay.'
 
 useSeoMeta({
