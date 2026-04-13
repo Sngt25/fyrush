@@ -1,9 +1,6 @@
 <script setup lang="ts">
 import { BARANGAY_KALIPAY_CENTER } from '#shared/fyrush'
 
-const runtimeConfig = useRuntimeConfig()
-const mapStyle = runtimeConfig.public.mapStyleUrl as string
-
 const { user, refreshUser, logout } = useAuthSession()
 const { incidents, history, fetchIncidents, fetchHistory, reportIncident } = useIncidents()
 const { payload, connect, disconnect } = useIncidentSocket()
@@ -13,6 +10,15 @@ const confirmOpen = ref(false)
 const manualMarker = ref<[number, number]>([BARANGAY_KALIPAY_CENTER.lng, BARANGAY_KALIPAY_CENTER.lat])
 const pending = ref(false)
 const statusMessage = ref('Ready to report.')
+const registeredPoint = computed<[number, number] | null>(() => {
+  const lng = user.value?.registeredLng
+  const lat = user.value?.registeredLat
+
+  if (!userHasRegisteredPoint.value || typeof lng !== 'number' || typeof lat !== 'number')
+    return null
+
+  return [lng, lat]
+})
 
 onMounted(async () => {
   const current = await refreshUser()
@@ -34,15 +40,6 @@ watch(payload, (value) => {
 
 const latestIncident = computed(() => incidents.value[0] || null)
 const userHasRegisteredPoint = computed(() => typeof user.value?.registeredLat === 'number' && typeof user.value?.registeredLng === 'number')
-
-function onMapClick(event: unknown) {
-  const typed = event as { map?: { getCenter?: () => { lng: number, lat: number } }, lngLat?: { lng: number, lat: number } }
-  const lngLat = typed.map?.getCenter?.() || typed.lngLat
-  if (!lngLat)
-    return
-
-  manualMarker.value = [lngLat.lng, lngLat.lat]
-}
 
 async function submitReport() {
   pending.value = true
@@ -126,28 +123,11 @@ async function signOut() {
       </p>
     </UCard>
 
-    <ClientOnly>
-      <UCard class="overflow-hidden">
-        <MglMap
-          :map-style="mapStyle"
-          :center="manualMarker"
-          :zoom="14"
-          style="height: 340px"
-          @click="onMapClick"
-        >
-          <MglNavigationControl />
-          <MglMarker
-            :coordinates="manualMarker"
-            color="red"
-          />
-          <MglMarker
-            v-if="userHasRegisteredPoint"
-            :coordinates="[user!.registeredLng!, user!.registeredLat!]"
-            color="blue"
-          />
-        </MglMap>
-      </UCard>
-    </ClientOnly>
+    <CitizenReportMap
+      v-model:manual-marker="manualMarker"
+      :user-has-registered-point="userHasRegisteredPoint"
+      :registered-point="registeredPoint"
+    />
 
     <div class="grid md:grid-cols-2 gap-4">
       <UCard>

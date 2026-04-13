@@ -1,13 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  modules: [
-    '@nuxt/eslint',
-    '@nuxt/ui',
-    '@nuxt/image',
-    '@nuxthub/core',
-    'nuxt-maplibre',
-    '@vite-pwa/nuxt'
-  ],
+  modules: ['@nuxt/eslint', '@nuxt/ui', '@nuxt/image', '@nuxthub/core', '@vite-pwa/nuxt', '@nuxtjs/leaflet'],
 
   devtools: {
     enabled: true
@@ -17,7 +10,6 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      mapStyleUrl: 'https://demotiles.maplibre.org/style.json',
       barangayCenter: [123.622003, 12.3717467]
     }
   },

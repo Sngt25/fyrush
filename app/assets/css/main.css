@@ -1,6 +1,5 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
-@import "maplibre-gl/dist/maplibre-gl.css";
 
 :root {
   --font-sans: "Sora", "Segoe UI", sans-serif;
