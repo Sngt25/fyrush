@@ -82,13 +82,23 @@ async function submitSignup() {
         v-if="mode === 'login'"
         class="space-y-4"
       >
-        <UFormField label="Mobile Number">
-          <UInput v-model="loginForm.mobile" />
+        <UFormField
+          label="Mobile Number"
+          class="w-full"
+        >
+          <UInput
+            v-model="loginForm.mobile"
+            class="w-full"
+          />
         </UFormField>
-        <UFormField label="Password">
+        <UFormField
+          label="Password"
+          class="w-full"
+        >
           <UInput
             v-model="loginForm.password"
             type="password"
+            class="w-full"
           />
         </UFormField>
 
@@ -106,22 +116,42 @@ async function submitSignup() {
         v-else
         class="space-y-4"
       >
-        <UFormField label="Name">
-          <UInput v-model="signupForm.name" />
+        <UFormField
+          label="Name"
+          class="w-full"
+        >
+          <UInput
+            v-model="signupForm.name"
+            class="w-full"
+          />
         </UFormField>
-        <UFormField label="Mobile Number">
-          <UInput v-model="signupForm.mobile" />
+        <UFormField
+          label="Mobile Number"
+          class="w-full"
+        >
+          <UInput
+            v-model="signupForm.mobile"
+            class="w-full"
+          />
         </UFormField>
-        <UFormField label="Exact Address">
+        <UFormField
+          label="Exact Address"
+          class="w-full"
+        >
           <UTextarea
             v-model="signupForm.address"
             :rows="2"
+            class="w-full"
           />
         </UFormField>
-        <UFormField label="Password">
+        <UFormField
+          label="Password"
+          class="w-full"
+        >
           <UInput
             v-model="signupForm.password"
             type="password"
+            class="w-full"
           />
         </UFormField>
 
