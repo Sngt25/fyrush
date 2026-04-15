@@ -6,11 +6,12 @@
       </p>
       <UButton
         color="neutral"
-        variant="ghost"
-        class="text-white"
-        icon="i-lucide-circle-user-round"
+        variant="outline"
+        icon="i-lucide-log-out"
         @click="$emit('signOut')"
-      />
+      >
+        Logout
+      </UButton>
     </div>
   </header>
 </template>
