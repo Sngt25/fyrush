@@ -1,24 +1,52 @@
 <script setup lang="ts">
+import type { NavigationMenuItem } from '@nuxt/ui'
 import { BARANGAY_KALIPAY_CENTER } from '#shared/fyrush'
 
-const { user, refreshUser, logout } = useAuthSession()
+const route = useRoute()
+const { refreshUser, logout } = useAuthSession()
 const { incidents, history, fetchIncidents, fetchHistory, reportIncident } = useIncidents()
 const { payload, connect, disconnect } = useIncidentSocket()
 
-const reportMode = ref<'registered' | 'manual'>('registered')
-const confirmOpen = ref(false)
-const manualMarker = ref<[number, number]>([BARANGAY_KALIPAY_CENTER.lng, BARANGAY_KALIPAY_CENTER.lat])
+const locationPromptOpen = ref(false)
+const submitConfirmOpen = ref(false)
+const useSetLocation = ref(true)
+const mapVisible = ref(false)
 const pending = ref(false)
-const statusMessage = ref('Ready to report.')
-const registeredPoint = computed<[number, number] | null>(() => {
-  const lng = user.value?.registeredLng
-  const lat = user.value?.registeredLat
+const manualMarker = ref<[number, number]>([BARANGAY_KALIPAY_CENTER.lng, BARANGAY_KALIPAY_CENTER.lat])
+const statusMessage = ref('Checking your session...')
 
-  if (!userHasRegisteredPoint.value || typeof lng !== 'number' || typeof lat !== 'number')
-    return null
+const setLocationPoint = computed<[number, number]>(() => [BARANGAY_KALIPAY_CENTER.lng, BARANGAY_KALIPAY_CENTER.lat])
 
-  return [lng, lat]
-})
+const locationLabel = computed(() =>
+  useSetLocation.value ? 'Location: Barangay Kalipay' : 'Location: Manual map pin'
+)
+
+const locationDetail = computed(() =>
+  useSetLocation.value
+    ? 'Set location active'
+    : `Pinned at ${manualMarker.value[1].toFixed(5)}, ${manualMarker.value[0].toFixed(5)}`
+)
+
+const latestIncident = computed(() => incidents.value[0] || null)
+
+const bottomNavItems = computed<NavigationMenuItem[]>(() => [
+  {
+    label: 'Home',
+    icon: 'i-lucide-house',
+    to: '/'
+  },
+  {
+    label: 'Report',
+    icon: 'i-lucide-flame',
+    to: '/citizen/report',
+    active: route.path === '/citizen/report'
+  },
+  {
+    label: 'Profile',
+    icon: 'i-lucide-user-round',
+    to: '/citizen/auth'
+  }
+])
 
 onMounted(async () => {
   const current = await refreshUser()
@@ -29,6 +57,9 @@ onMounted(async () => {
 
   await Promise.all([fetchIncidents(), fetchHistory()])
   connect()
+
+  locationPromptOpen.value = true
+  statusMessage.value = 'Confirm where the fire is before sending your alert.'
 })
 
 onBeforeUnmount(() => disconnect())
@@ -38,15 +69,30 @@ watch(payload, (value) => {
     incidents.value = value.incidents as typeof incidents.value
 })
 
-const latestIncident = computed(() => incidents.value[0] || null)
-const userHasRegisteredPoint = computed(() => typeof user.value?.registeredLat === 'number' && typeof user.value?.registeredLng === 'number')
+function confirmSetLocation() {
+  useSetLocation.value = true
+  mapVisible.value = false
+  locationPromptOpen.value = false
+  statusMessage.value = 'Set location confirmed. Tap REPORT FIRE to send an alert.'
+}
+
+function chooseManualLocation() {
+  useSetLocation.value = false
+  mapVisible.value = true
+  locationPromptOpen.value = false
+  statusMessage.value = 'Tap on the map to pin the exact fire location, then report.'
+}
+
+function toggleMap() {
+  mapVisible.value = !mapVisible.value
+}
 
 async function submitReport() {
   pending.value = true
 
   try {
-    if (reportMode.value === 'registered') {
-      await reportIncident({ useRegistered: true, address: user.value?.address || 'Registered address' })
+    if (useSetLocation.value) {
+      await reportIncident({ useRegistered: true })
     } else {
       await reportIncident({
         useRegistered: false,
@@ -57,7 +103,7 @@ async function submitReport() {
     }
 
     statusMessage.value = 'Fire report submitted successfully.'
-    confirmOpen.value = false
+    submitConfirmOpen.value = false
     await fetchHistory()
   } catch (err) {
     statusMessage.value = err instanceof Error ? err.message : 'Report submission failed.'
@@ -73,121 +119,174 @@ async function signOut() {
 </script>
 
 <template>
-  <UContainer class="py-6 max-w-5xl space-y-5">
-    <div class="flex flex-wrap items-center justify-between gap-3">
-      <div>
-        <h1 class="text-2xl font-black fyrush-title">
-          Fyrush Citizen Panel
-        </h1>
-        <p class="text-sm text-muted">
-          Welcome, {{ user?.name }}
-        </p>
-      </div>
-      <UButton
-        color="neutral"
-        variant="outline"
-        @click="signOut"
-      >
-        Logout
-      </UButton>
-    </div>
-
-    <UAlert
-      title="3-Tap Fire Report"
-      description="1) Confirm location 2) Confirm report 3) Submit"
-      color="error"
-      variant="subtle"
-    />
-
-    <UCard class="fyrush-panel space-y-4">
-      <div class="flex flex-wrap gap-3 items-center justify-between">
-        <div>
-          <p class="font-semibold">
-            Location: {{ user?.address || 'Barangay Kalipay' }}
-          </p>
-          <p class="text-xs text-muted">
-            GPS active and map pin override available
-          </p>
+  <UContainer class="py-5 max-w-md">
+    <div class="fyrush-phone-frame rounded-[1.7rem] border border-black/15 bg-white shadow-2xl overflow-hidden">
+      <header class="bg-(--fyrush-ink) text-white px-4 py-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-4xl leading-none font-black tracking-tight">
+              Fyrush
+            </p>
+          </div>
+          <UButton
+            color="neutral"
+            variant="ghost"
+            class="text-white"
+            icon="i-lucide-circle-user-round"
+            @click="signOut"
+          />
         </div>
-        <UButton
-          color="error"
-          size="xl"
-          @click="confirmOpen = true"
-        >
-          Report Fire
-        </UButton>
-      </div>
+      </header>
 
-      <p class="text-sm">
-        {{ statusMessage }}
-      </p>
-    </UCard>
+      <main class="p-4 space-y-4 pb-24">
+        <div class="fyrush-location-card rounded-2xl px-4 py-3">
+          <div class="flex items-start gap-3">
+            <UIcon
+              name="i-lucide-map-pin"
+              class="size-6 mt-0.5 text-(--fyrush-ink)"
+            />
+            <div>
+              <p class="font-extrabold text-lg leading-tight text-(--fyrush-ink)">
+                {{ locationLabel }}
+              </p>
+              <p class="text-sm text-(--fyrush-ink)/85">
+                ({{ locationDetail }})
+              </p>
+            </div>
+          </div>
+        </div>
 
-    <CitizenReportMap
-      v-model:manual-marker="manualMarker"
-      :user-has-registered-point="userHasRegisteredPoint"
-      :registered-point="registeredPoint"
-    />
-
-    <div class="grid md:grid-cols-2 gap-4">
-      <UCard>
-        <template #header>
-          <h2 class="font-bold">
-            Latest Incident
-          </h2>
-        </template>
-
-        <p
-          v-if="latestIncident"
-          class="text-sm"
-        >
-          {{ latestIncident.address }} • {{ latestIncident.status }} • {{ latestIncident.reportCount }} reports
-        </p>
-        <p
-          v-else
-          class="text-sm text-muted"
-        >
-          No incidents yet.
-        </p>
-      </UCard>
-
-      <UCard>
-        <template #header>
-          <h2 class="font-bold">
-            History Log
-          </h2>
-        </template>
-
-        <ul class="space-y-2 text-sm">
-          <li
-            v-for="item in history"
-            :key="item.id"
-            class="border-b border-default pb-2"
+        <div class="flex justify-center pt-2">
+          <button
+            class="fyrush-report-ring"
+            type="button"
+            :disabled="pending"
+            @click="submitConfirmOpen = true"
           >
-            {{ item.address }} • {{ item.status }}
-          </li>
-        </ul>
-      </UCard>
+            <span class="fyrush-report-core">
+              <UIcon
+                name="i-lucide-flame"
+                class="size-14 text-white"
+              />
+              <span class="text-4xl font-black tracking-tight leading-none">REPORT</span>
+              <span class="text-4xl font-black tracking-tight leading-none">FIRE</span>
+            </span>
+          </button>
+        </div>
+
+        <p class="text-center text-sm text-muted">
+          Tap to Send Alert
+        </p>
+
+        <div class="space-y-3">
+          <div class="flex items-center justify-between gap-2">
+            <h2 class="text-2xl font-black fyrush-title">
+              History Log
+            </h2>
+            <div class="flex gap-2">
+              <UButton
+                color="neutral"
+                variant="soft"
+                size="sm"
+                icon="i-lucide-map"
+                @click="locationPromptOpen = true"
+              >
+                Location
+              </UButton>
+              <UButton
+                color="neutral"
+                variant="outline"
+                size="sm"
+                icon="i-lucide-map-pinned"
+                @click="toggleMap"
+              >
+                {{ mapVisible ? 'Hide Map' : 'Show Map' }}
+              </UButton>
+            </div>
+          </div>
+
+          <UCard
+            v-if="latestIncident"
+            class="bg-(--fyrush-ink) text-white border-none"
+          >
+            <div class="flex items-start gap-3">
+              <UIcon
+                name="i-lucide-history"
+                class="size-6 mt-0.5"
+              />
+              <div>
+                <p class="font-bold">
+                  {{ latestIncident.status }}
+                </p>
+                <p class="text-sm text-white/85">
+                  {{ latestIncident.address }}
+                </p>
+              </div>
+            </div>
+          </UCard>
+
+          <UCard v-else>
+            <p class="text-sm text-muted">
+              No incident history yet.
+            </p>
+          </UCard>
+
+          <UCard v-if="history.length > 0">
+            <ul class="space-y-2 text-sm">
+              <li
+                v-for="item in history"
+                :key="item.id"
+                class="border-b border-default pb-2 last:border-b-0"
+              >
+                <p class="font-semibold capitalize">
+                  {{ item.status }}
+                </p>
+                <p class="text-muted">
+                  {{ item.address }}
+                </p>
+              </li>
+            </ul>
+          </UCard>
+
+          <Transition name="fade-slide">
+            <CitizenReportMap
+              v-if="mapVisible"
+              v-model:manual-marker="manualMarker"
+              :user-has-registered-point="true"
+              :registered-point="setLocationPoint"
+            />
+          </Transition>
+
+          <UAlert
+            :title="statusMessage"
+            color="info"
+            variant="soft"
+          />
+        </div>
+      </main>
+
+      <footer class="absolute bottom-0 left-0 right-0 border-t border-default bg-white/95 backdrop-blur px-3 py-2">
+        <UNavigationMenu
+          :items="bottomNavItems"
+          class="w-full justify-around"
+          :ui="{
+            list: 'w-full justify-around',
+            link: 'flex-1 justify-center rounded-full px-3 py-2 data-[state=active]:bg-red-50 data-[state=active]:text-red-700',
+            linkLabel: 'text-xs font-semibold'
+          }"
+        />
+      </footer>
     </div>
 
     <UModal
-      v-model:open="confirmOpen"
-      title="Is your registered area the location of the fire?"
+      v-model:open="locationPromptOpen"
+      title="Is the fire in the set location?"
+      :ui="{ body: 'space-y-3' }"
     >
       <template #body>
-        <div class="space-y-4">
-          <URadioGroup
-            v-model="reportMode"
-            :items="[
-              { label: 'Yes, use registered location', value: 'registered', disabled: !userHasRegisteredPoint },
-              { label: 'No, I pinned on map', value: 'manual' }
-            ]"
-          />
-
-          <p class="text-xs text-muted">
-            If you are out of town, choose manual pin and tap map to set exact fire point.
-          </p>
-        </div>
+        <p class="text-sm text-muted">
+          Set location: Barangay Kalipay. Choose Yes to report quickly, or No to pin the exact map point.
+        </p>
       </template>
 
       <template #footer>
@@ -196,7 +295,38 @@ async function signOut() {
             color="neutral"
             variant="outline"
             block
-            @click="confirmOpen = false"
+            @click="chooseManualLocation"
+          >
+            No, choose on map
+          </UButton>
+          <UButton
+            color="error"
+            block
+            @click="confirmSetLocation"
+          >
+            Yes, use set location
+          </UButton>
+        </div>
+      </template>
+    </UModal>
+
+    <UModal
+      v-model:open="submitConfirmOpen"
+      title="Send fire report now?"
+    >
+      <template #body>
+        <p class="text-sm text-muted">
+          This will alert responders immediately for {{ useSetLocation ? 'Barangay Kalipay set location' : 'your pinned map location' }}.
+        </p>
+      </template>
+
+      <template #footer>
+        <div class="w-full flex gap-2">
+          <UButton
+            color="neutral"
+            variant="outline"
+            block
+            @click="submitConfirmOpen = false"
           >
             Cancel
           </UButton>

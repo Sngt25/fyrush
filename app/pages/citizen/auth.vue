@@ -4,28 +4,17 @@ const pending = ref(false)
 const error = ref('')
 
 const loginForm = reactive({
-  mobile: '',
+  email: '',
   password: ''
 })
 
 const signupForm = reactive({
   name: '',
-  mobile: '',
-  address: '',
-  password: '',
-  registeredLat: undefined as number | undefined,
-  registeredLng: undefined as number | undefined
+  email: '',
+  password: ''
 })
 
 const { citizenLogin, citizenSignup } = useAuthSession()
-const { latitude, longitude, requestLocation, geoStatus } = useDeviceCapabilities()
-
-watch([latitude, longitude], () => {
-  if (latitude.value !== null)
-    signupForm.registeredLat = latitude.value
-  if (longitude.value !== null)
-    signupForm.registeredLng = longitude.value
-})
 
 async function submitLogin() {
   pending.value = true
@@ -33,7 +22,7 @@ async function submitLogin() {
 
   try {
     await citizenLogin({
-      mobile: loginForm.mobile,
+      email: loginForm.email,
       password: loginForm.password
     })
 
@@ -61,20 +50,25 @@ async function submitSignup() {
 </script>
 
 <template>
-  <UContainer class="py-10 max-w-lg">
-    <UCard class="fyrush-panel">
+  <UContainer class="py-8 max-w-md">
+    <UCard class="fyrush-panel border border-default/70 shadow-xl">
       <template #header>
-        <div class="flex items-center justify-between gap-3">
-          <h1 class="text-2xl font-bold">
-            Citizen {{ mode === 'login' ? 'Login' : 'Sign Up' }}
-          </h1>
-          <UButton
-            color="neutral"
-            variant="ghost"
-            @click="mode = mode === 'login' ? 'signup' : 'login'"
-          >
-            {{ mode === 'login' ? 'Create account' : 'Have account?' }}
-          </UButton>
+        <div class="space-y-4">
+          <div class="flex justify-center">
+            <AppLogo class="w-44 h-auto" />
+          </div>
+          <div class="flex items-center justify-between gap-3">
+            <h1 class="text-2xl font-black fyrush-title">
+              Citizen {{ mode === 'login' ? 'Login' : 'Sign Up' }}
+            </h1>
+            <UButton
+              color="neutral"
+              variant="ghost"
+              @click="mode = mode === 'login' ? 'signup' : 'login'"
+            >
+              {{ mode === 'login' ? 'Create account' : 'Have account?' }}
+            </UButton>
+          </div>
         </div>
       </template>
 
@@ -83,11 +77,12 @@ async function submitSignup() {
         class="space-y-4"
       >
         <UFormField
-          label="Mobile Number"
+          label="Email Address"
           class="w-full"
         >
           <UInput
-            v-model="loginForm.mobile"
+            v-model="loginForm.email"
+            type="email"
             class="w-full"
           />
         </UFormField>
@@ -112,10 +107,7 @@ async function submitSignup() {
         </UButton>
       </div>
 
-      <div
-        v-else
-        class="space-y-4"
-      >
+      <div v-else class="space-y-4">
         <UFormField
           label="Name"
           class="w-full"
@@ -126,21 +118,12 @@ async function submitSignup() {
           />
         </UFormField>
         <UFormField
-          label="Mobile Number"
+          label="Email Address"
           class="w-full"
         >
           <UInput
-            v-model="signupForm.mobile"
-            class="w-full"
-          />
-        </UFormField>
-        <UFormField
-          label="Exact Address"
-          class="w-full"
-        >
-          <UTextarea
-            v-model="signupForm.address"
-            :rows="2"
+            v-model="signupForm.email"
+            type="email"
             class="w-full"
           />
         </UFormField>
@@ -155,29 +138,6 @@ async function submitSignup() {
           />
         </UFormField>
 
-        <div class="rounded-lg border border-default p-3 space-y-2">
-          <p class="text-xs text-muted">
-            Registered location capture (recommended)
-          </p>
-          <UButton
-            size="sm"
-            variant="outline"
-            icon="i-lucide-map-pin"
-            @click="requestLocation"
-          >
-            Use my current location
-          </UButton>
-          <p class="text-xs text-muted">
-            {{ geoStatus }}
-          </p>
-          <p
-            v-if="signupForm.registeredLat && signupForm.registeredLng"
-            class="text-xs"
-          >
-            Lat: {{ signupForm.registeredLat.toFixed(6) }} / Lng: {{ signupForm.registeredLng.toFixed(6) }}
-          </p>
-        </div>
-
         <UButton
           block
           color="error"
@@ -190,7 +150,7 @@ async function submitSignup() {
 
       <p
         v-if="error"
-        class="text-sm text-error mt-3"
+        class="text-sm text-error mt-3 text-center"
       >
         {{ error }}
       </p>

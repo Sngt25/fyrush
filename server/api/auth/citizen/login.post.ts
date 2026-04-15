@@ -4,13 +4,13 @@ import { USER_ROLE } from '#shared/fyrush'
 import { createSession, toAuthUser, verifyPassword } from '../../../utils/auth'
 
 export default defineEventHandler(async (event) => {
-  const body = await readBody<{ mobile?: string, password?: string }>(event)
+  const body = await readBody<{ email?: string, password?: string }>(event)
 
-  if (!body.mobile || !body.password)
-    throw createError({ statusCode: 400, statusMessage: 'Mobile and password are required.' })
+  if (!body.email || !body.password)
+    throw createError({ statusCode: 400, statusMessage: 'Email and password are required.' })
 
   const row = await db.query.users.findFirst({
-    where: and(eq(schema.users.role, USER_ROLE.CITIZEN), eq(schema.users.mobile, body.mobile.trim()))
+    where: and(eq(schema.users.role, USER_ROLE.CITIZEN), eq(schema.users.email, body.email.trim().toLowerCase()))
   })
 
   if (!row || !verifyPassword(body.password, row.passwordHash))

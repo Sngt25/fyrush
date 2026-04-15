@@ -6,22 +6,19 @@ import { createPasswordHash, createSession, toAuthUser } from '../../../utils/au
 export default defineEventHandler(async (event) => {
   const body = await readBody<{
     name?: string
-    mobile?: string
-    address?: string
+    email?: string
     password?: string
-    registeredLat?: number
-    registeredLng?: number
   }>(event)
 
-  if (!body.name || !body.mobile || !body.address || !body.password)
-    throw createError({ statusCode: 400, statusMessage: 'Name, mobile, address, and password are required.' })
+  if (!body.name || !body.email || !body.password)
+    throw createError({ statusCode: 400, statusMessage: 'Name, email, and password are required.' })
 
   const existing = await db.query.users.findFirst({
-    where: and(eq(schema.users.role, USER_ROLE.CITIZEN), eq(schema.users.mobile, body.mobile))
+    where: and(eq(schema.users.role, USER_ROLE.CITIZEN), eq(schema.users.email, body.email.trim()))
   })
 
   if (existing)
-    throw createError({ statusCode: 409, statusMessage: 'Mobile number is already registered.' })
+    throw createError({ statusCode: 409, statusMessage: 'Email address is already registered.' })
 
   const now = Date.now()
   const row: typeof schema.users.$inferInsert = {
@@ -29,10 +26,11 @@ export default defineEventHandler(async (event) => {
     role: USER_ROLE.CITIZEN,
     loginId: null,
     name: body.name.trim(),
-    mobile: body.mobile.trim(),
-    address: body.address.trim(),
-    registeredLat: typeof body.registeredLat === 'number' ? body.registeredLat : null,
-    registeredLng: typeof body.registeredLng === 'number' ? body.registeredLng : null,
+    email: body.email.trim().toLowerCase(),
+    mobile: null,
+    address: null,
+    registeredLat: null,
+    registeredLng: null,
     passwordHash: createPasswordHash(body.password),
     createdAt: now
   }

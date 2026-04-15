@@ -1,4 +1,4 @@
-import { USER_ROLE } from '#shared/fyrush'
+import { BARANGAY_KALIPAY_CENTER, USER_ROLE } from '#shared/fyrush'
 import { requireUser } from '../../utils/auth'
 import { createIncidentReport } from '../../utils/incidents'
 
@@ -13,8 +13,8 @@ export default defineEventHandler(async (event) => {
   }>(event)
 
   const useRegistered = body.useRegistered !== false
-  const latitude = useRegistered ? user.registeredLat : body.latitude
-  const longitude = useRegistered ? user.registeredLng : body.longitude
+  const latitude = useRegistered ? BARANGAY_KALIPAY_CENTER.lat : body.latitude
+  const longitude = useRegistered ? BARANGAY_KALIPAY_CENTER.lng : body.longitude
 
   if (typeof latitude !== 'number' || typeof longitude !== 'number') {
     throw createError({
@@ -23,7 +23,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const address = body.address?.trim() || (useRegistered ? user.address : 'Pinned fire location') || 'Unknown location'
+  const address = body.address?.trim() || (useRegistered ? 'Barangay Kalipay set location' : 'Pinned fire location') || 'Unknown location'
 
   const incident = await createIncidentReport({
     userId: user.id,

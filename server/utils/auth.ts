@@ -26,8 +26,8 @@ function mapUser(row: typeof schema.users.$inferSelect): AuthUser {
     id: row.id,
     role: row.role as UserRole,
     name: row.name,
+    email: row.email,
     mobile: row.mobile,
-    address: row.address,
     registeredLat: row.registeredLat,
     registeredLng: row.registeredLng
   }
@@ -56,6 +56,7 @@ export async function ensureBfpUser() {
     role: USER_ROLE.BFP,
     loginId: DEFAULT_BFP_LOGIN_ID,
     name: 'Barangay Kalipay Fire Station',
+    email: null,
     mobile: null,
     address: 'Barangay Kalipay Station',
     registeredLat: null,

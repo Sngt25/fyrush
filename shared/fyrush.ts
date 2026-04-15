@@ -24,8 +24,8 @@ export interface AuthUser {
   id: string
   role: UserRole
   name: string
+  email: string | null
   mobile: string | null
-  address: string | null
   registeredLat: number | null
   registeredLng: number | null
 }

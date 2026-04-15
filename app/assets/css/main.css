@@ -4,19 +4,23 @@
 :root {
   --font-sans: "Sora", "Segoe UI", sans-serif;
 
-  --fyrush-ink: #09123e;
-  --fyrush-ink-soft: #1d284f;
-  --fyrush-danger: #cf1f2b;
-  --fyrush-gold: #f3c541;
-  --fyrush-paper: #f7f8fb;
+  --fyrush-ink: #0b1532;
+  --fyrush-ink-soft: #1b264a;
+  --fyrush-danger: #d81f2a;
+  --fyrush-gold: #f4b63a;
+  --fyrush-paper: #f5f7fb;
+  --fyrush-location: #f7b300;
 }
 
 body {
-  background: radial-gradient(circle at 10% 10%, #fff8df 0%, #f7f8fb 35%, #eef1f9 100%);
+  background:
+    radial-gradient(circle at 20% 4%, rgb(247 179 0 / 18%) 0, transparent 26%),
+    radial-gradient(circle at 90% 10%, rgb(216 31 42 / 12%) 0, transparent 24%),
+    linear-gradient(180deg, #eceef2 0, #f5f7fb 100%);
 }
 
 .fyrush-bg {
-  background-image: linear-gradient(180deg, rgb(9 18 62 / 6%), rgb(247 248 251 / 85%) 280px);
+  background-image: linear-gradient(180deg, rgb(11 21 50 / 10%), rgb(245 247 251 / 90%) 260px);
 }
 
 .fyrush-title {
@@ -25,7 +29,77 @@ body {
 }
 
 .fyrush-panel {
-  border: 1px solid rgb(9 18 62 / 12%);
-  box-shadow: 0 18px 48px rgb(9 18 62 / 10%);
-  backdrop-filter: blur(8px);
+  border: 1px solid rgb(11 21 50 / 12%);
+  box-shadow: 0 18px 50px rgb(11 21 50 / 12%);
+  backdrop-filter: blur(14px);
+}
+
+.fyrush-mobile-shell {
+  background:
+    radial-gradient(circle at top, rgb(255 255 255 / 18%), transparent 40%),
+    linear-gradient(180deg, rgb(14 22 48 / 95%) 0, rgb(15 23 42 / 98%) 34%, rgb(245 247 251 / 100%) 34%);
+}
+
+.fyrush-glow {
+  box-shadow: 0 0 0 1px rgb(244 182 58 / 18%), 0 14px 40px rgb(216 31 42 / 22%);
+}
+
+.fyrush-phone-frame {
+  position: relative;
+  min-height: 86vh;
+}
+
+.fyrush-location-card {
+  background: linear-gradient(180deg, #ffc123 0, #f0aa00 100%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 45%), 0 9px 18px rgb(96 71 0 / 26%);
+}
+
+.fyrush-report-ring {
+  position: relative;
+  width: 15.5rem;
+  height: 15.5rem;
+  border-radius: 9999px;
+  border: none;
+  background:
+    radial-gradient(circle at center, rgb(255 255 255 / 75%) 0, rgb(255 255 255 / 0%) 56%),
+    radial-gradient(circle at center, rgb(216 31 42 / 18%) 35%, rgb(216 31 42 / 0%) 72%);
+  display: grid;
+  place-items: center;
+  animation: fyrushPulse 2.2s ease-in-out infinite;
+}
+
+.fyrush-report-core {
+  width: 11.6rem;
+  height: 11.6rem;
+  border-radius: 9999px;
+  background: linear-gradient(180deg, #e4242d 0, #ca151e 100%);
+  border: 5px solid #f6bcc0;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-shadow: 0 14px 24px rgb(126 8 14 / 32%), inset 0 -8px 14px rgb(76 0 8 / 18%);
+}
+
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: all 0.2s ease;
+}
+
+.fade-slide-enter-from,
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+@keyframes fyrushPulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.03);
+  }
 }

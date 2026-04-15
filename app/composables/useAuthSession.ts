@@ -18,11 +18,8 @@ export function useAuthSession() {
 
   async function citizenSignup(payload: {
     name: string
-    mobile: string
-    address: string
+    email: string
     password: string
-    registeredLat?: number
-    registeredLng?: number
   }) {
     const response = await $fetch<{ ok: boolean, user: AuthUser }>('/api/auth/citizen/signup', {
       method: 'POST',
@@ -32,7 +29,7 @@ export function useAuthSession() {
     return response.user
   }
 
-  async function citizenLogin(payload: { mobile: string, password: string }) {
+  async function citizenLogin(payload: { email: string, password: string }) {
     const response = await $fetch<{ ok: boolean, user: AuthUser }>('/api/auth/citizen/login', {
       method: 'POST',
       body: payload
