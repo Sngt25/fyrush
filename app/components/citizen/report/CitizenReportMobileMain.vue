@@ -57,8 +57,8 @@ defineEmits<{
             name="i-lucide-flame"
             class="size-14 text-white"
           />
-          <span class="text-4xl font-black tracking-tight leading-none">REPORT</span>
-          <span class="text-4xl font-black tracking-tight leading-none">FIRE</span>
+          <span class="text-2xl font-black tracking-tight leading-none">REPORT</span>
+          <span class="text-2xl font-black tracking-tight leading-none">FIRE</span>
         </span>
       </button>
     </div>
@@ -69,7 +69,7 @@ defineEmits<{
 
     <div class="space-y-3">
       <div class="flex items-center justify-between gap-2">
-        <h2 class="text-2xl font-black fyrush-title">
+        <h2 class="font-bold text-lg">
           History Log
         </h2>
         <div class="flex gap-2">

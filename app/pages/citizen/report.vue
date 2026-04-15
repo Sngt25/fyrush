@@ -119,8 +119,8 @@ async function signOut() {
 </script>
 
 <template>
-  <UContainer class="max-w-md md:max-w-6xl h-screen py-2 md:py-4">
-    <div class="md:hidden fyrush-phone-frame h-full border border-black/15 bg-white shadow-2xl overflow-hidden flex flex-col">
+  <div class="h-dvh w-full md:max-w-6xl mx-auto">
+    <div class="md:hidden h-dvh w-full overflow-hidden bg-white flex flex-col">
       <CitizenReportMobileHeader @sign-out="signOut" />
 
       <CitizenReportMobileMain
@@ -140,7 +140,7 @@ async function signOut() {
       </footer>
     </div>
 
-    <div class="hidden md:flex h-full overflow-hidden border border-default bg-white shadow-2xl flex-col">
+    <div class="hidden md:flex h-dvh w-full overflow-hidden border border-default bg-white shadow-2xl flex-col">
       <CitizenReportDesktopHeader
         @open-location-prompt="locationPromptOpen = true"
         @sign-out="signOut"
@@ -177,5 +177,5 @@ async function signOut() {
       @confirm-set-location="confirmSetLocation"
       @submit-report="submitReport"
     />
-  </UContainer>
+  </div>
 </template>
