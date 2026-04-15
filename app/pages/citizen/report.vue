@@ -15,8 +15,13 @@ const pending = ref(false)
 const manualMarker = ref<[number, number]>([BARANGAY_KALIPAY_CENTER.lng, BARANGAY_KALIPAY_CENTER.lat])
 const statusMessage = ref('Checking your session...')
 
+const activeTab = computed<'dashboard' | 'history'>(() =>
+  route.query.tab === 'history' ? 'history' : 'dashboard'
+)
+
 const setLocationPoint = computed<[number, number]>(() => [BARANGAY_KALIPAY_CENTER.lng, BARANGAY_KALIPAY_CENTER.lat])
 const latestIncident = computed(() => incidents.value[0] || null)
+const dashboardHistory = computed(() => history.value.slice(0, 3))
 
 const locationLabel = computed(() =>
   useSetLocation.value ? 'Location: Barangay Kalipay' : 'Location: Manual map pin'
@@ -32,13 +37,14 @@ const bottomNavItems = computed<NavigationMenuItem[]>(() => [
   {
     label: 'Home',
     icon: 'i-lucide-house',
-    to: '/'
+    to: '/citizen/report',
+    active: activeTab.value === 'dashboard'
   },
   {
-    label: 'Report',
-    icon: 'i-lucide-flame',
-    to: '/citizen/report',
-    active: route.path === '/citizen/report'
+    label: 'History',
+    icon: 'i-lucide-history',
+    to: '/citizen/report?tab=history',
+    active: activeTab.value === 'history'
   },
   {
     label: 'Profile',
@@ -87,6 +93,14 @@ function openMapDialog() {
   mapDialogOpen.value = true
 }
 
+async function selectTab(tab: 'dashboard' | 'history') {
+  const query = tab === 'history'
+    ? { ...route.query, tab: 'history' }
+    : Object.fromEntries(Object.entries(route.query).filter(([key]) => key !== 'tab'))
+
+  await navigateTo({ path: '/citizen/report', query })
+}
+
 async function submitReport() {
   pending.value = true
 
@@ -124,15 +138,22 @@ async function signOut() {
       <CitizenReportMobileHeader @sign-out="signOut" />
 
       <CitizenReportMobileMain
+        v-if="activeTab === 'dashboard'"
         :location-label="locationLabel"
         :location-detail="locationDetail"
         :pending="pending"
         :latest-incident="latestIncident"
-        :history="history"
+        :history="dashboardHistory"
         :status-message="statusMessage"
         @open-submit="submitConfirmOpen = true"
         @open-location-prompt="locationPromptOpen = true"
         @open-map="openMapDialog"
+        @open-history="selectTab('history')"
+      />
+
+      <CitizenReportHistoryView
+        v-else
+        :history="history"
       />
 
       <footer class="sticky bottom-0 z-20 border-t border-default bg-white/95 backdrop-blur px-3 py-2">
@@ -147,14 +168,22 @@ async function signOut() {
       />
 
       <CitizenReportDesktopMain
+        v-if="activeTab === 'dashboard'"
         :location-label="locationLabel"
         :location-detail="locationDetail"
         :pending="pending"
         :latest-incident="latestIncident"
-        :history="history"
+        :history="dashboardHistory"
         :status-message="statusMessage"
         @open-submit="submitConfirmOpen = true"
         @open-map="openMapDialog"
+        @open-history="selectTab('history')"
+      />
+
+      <CitizenReportHistoryView
+        v-else
+        :history="history"
+        desktop
       />
 
       <footer class="sticky bottom-0 z-20 border-t border-default bg-white/95 backdrop-blur px-3 py-2">

@@ -8,9 +8,10 @@ interface HistoryItem {
   id: string
   status: string
   address: string
+  createdAt: number
 }
 
-defineProps<{
+const props = defineProps<{
   locationLabel: string
   locationDetail: string
   pending: boolean
@@ -19,10 +20,25 @@ defineProps<{
   statusMessage: string
 }>()
 
+const historyFormatter = new Intl.DateTimeFormat('en-PH', {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+  hour: 'numeric',
+  minute: '2-digit'
+})
+
+const hasMoreHistory = computed(() => props.history.length >= 3)
+
+function formatHistoryDate(timestamp: number) {
+  return historyFormatter.format(new Date(timestamp))
+}
+
 defineEmits<{
   openSubmit: []
   openLocationPrompt: []
   openMap: []
+  openHistory: []
 }>()
 </script>
 
@@ -133,8 +149,26 @@ defineEmits<{
             <p class="text-muted">
               {{ item.address }}
             </p>
+            <p class="text-xs text-muted/80 mt-1">
+              {{ formatHistoryDate(item.createdAt) }}
+            </p>
           </li>
         </ul>
+
+        <div
+          v-if="hasMoreHistory"
+          class="pt-3"
+        >
+          <UButton
+            color="neutral"
+            variant="soft"
+            size="sm"
+            icon="i-lucide-chevron-right"
+            @click="$emit('openHistory')"
+          >
+            See more
+          </UButton>
+        </div>
       </UCard>
 
       <UAlert
