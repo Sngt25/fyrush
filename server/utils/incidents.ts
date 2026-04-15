@@ -50,17 +50,35 @@ export async function createIncidentReport(input: {
     .limit(1)
 
   let incidentId: string
+  let alreadyReported = false
 
   if (nearby.length > 0 && nearby[0]) {
     const nearbyIncident = nearby[0]
     incidentId = nearbyIncident.id
-    await db
-      .update(schema.incidents)
-      .set({
-        reportCount: nearbyIncident.reportCount + 1,
-        updatedAt: now
-      })
-      .where(eq(schema.incidents.id, incidentId))
+
+    const existingReport = await db
+      .select({ id: schema.incidentReports.id })
+      .from(schema.incidentReports)
+      .where(
+        and(
+          eq(schema.incidentReports.incidentId, incidentId),
+          eq(schema.incidentReports.userId, input.userId)
+        )
+      )
+      .limit(1)
+
+    if (existingReport.length > 0)
+      alreadyReported = true
+
+    if (!alreadyReported) {
+      await db
+        .update(schema.incidents)
+        .set({
+          reportCount: nearbyIncident.reportCount + 1,
+          updatedAt: now
+        })
+        .where(eq(schema.incidents.id, incidentId))
+    }
   } else {
     incidentId = randomUUID()
 
@@ -80,13 +98,18 @@ export async function createIncidentReport(input: {
     })
   }
 
-  await db.insert(schema.incidentReports).values({
-    id: randomUUID(),
-    incidentId,
-    userId: input.userId,
-    source: input.source,
-    createdAt: now
-  })
+  if (!alreadyReported) {
+    await db.insert(schema.incidentReports).values({
+      id: randomUUID(),
+      incidentId,
+      userId: input.userId,
+      source: input.source,
+      createdAt: now
+    })
+  }
 
-  return db.query.incidents.findFirst({ where: eq(schema.incidents.id, incidentId) })
+  return {
+    incident: await db.query.incidents.findFirst({ where: eq(schema.incidents.id, incidentId) }),
+    alreadyReported
+  }
 }

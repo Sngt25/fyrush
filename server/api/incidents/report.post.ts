@@ -25,7 +25,7 @@ export default defineEventHandler(async (event) => {
 
   const address = body.address?.trim() || (useRegistered ? 'Barangay Kalipay set location' : 'Pinned fire location') || 'Unknown location'
 
-  const incident = await createIncidentReport({
+  const result = await createIncidentReport({
     userId: user.id,
     latitude,
     longitude,
@@ -35,6 +35,7 @@ export default defineEventHandler(async (event) => {
 
   return {
     ok: true,
-    incident
+    incident: result.incident,
+    alreadyReported: result.alreadyReported
   }
 })

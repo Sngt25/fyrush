@@ -21,13 +21,13 @@ export function useIncidents() {
   }
 
   async function reportIncident(payload: { useRegistered: boolean, latitude?: number, longitude?: number, address?: string }) {
-    const response = await $fetch<{ ok: boolean, incident: IncidentResponse }>('/api/incidents/report', {
+    const response = await $fetch<{ ok: boolean, incident: IncidentResponse | null, alreadyReported: boolean }>('/api/incidents/report', {
       method: 'POST',
       body: payload
     })
 
     await fetchIncidents()
-    return response.incident
+    return response
   }
 
   async function updateIncidentStatus(incidentId: string, action: 'validate' | 'start_timer' | 'dispatch' | 'complete') {

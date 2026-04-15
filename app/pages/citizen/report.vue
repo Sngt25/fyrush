@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from '@nuxt/ui'
-import { BARANGAY_KALIPAY_CENTER } from '#shared/fyrush'
+import { BARANGAY_KALIPAY_CENTER, INCIDENT_STATUS, type IncidentFeedItem } from '#shared/fyrush'
 
 const route = useRoute()
+const toast = useToast()
 const { refreshUser, logout } = useAuthSession()
 const { incidents, history, fetchIncidents, fetchHistory, reportIncident } = useIncidents()
 const { payload, connect, disconnect } = useIncidentSocket()
+const { rememberIncidents, notifyNewIncidents } = useIncidentPwaNotifications()
 
 const locationPromptOpen = ref(false)
 const mapDialogOpen = ref(false)
@@ -21,6 +23,7 @@ const activeTab = computed<'dashboard' | 'history'>(() =>
 const setLocationPoint = computed<[number, number]>(() => [BARANGAY_KALIPAY_CENTER.lng, BARANGAY_KALIPAY_CENTER.lat])
 const latestIncident = computed(() => incidents.value[0] || null)
 const dashboardHistory = computed(() => history.value.slice(0, 3))
+const alreadyReported = computed(() => history.value.some(item => item.status !== INCIDENT_STATUS.COMPLETED))
 
 const locationLabel = computed(() =>
   useSetLocation.value ? 'Location: Barangay Kalipay' : 'Location: Manual map pin'
@@ -60,6 +63,7 @@ onMounted(async () => {
   }
 
   await Promise.all([fetchIncidents(), fetchHistory()])
+  rememberIncidents(incidents.value)
   connect()
 
   locationPromptOpen.value = true
@@ -68,10 +72,23 @@ onMounted(async () => {
 
 onBeforeUnmount(() => disconnect())
 
-watch(payload, (value) => {
-  if (value?.incidents)
-    incidents.value = value.incidents as typeof incidents.value
+watch(payload, async (value) => {
+  if (!value?.incidents)
+    return
+
+  incidents.value = value.incidents as typeof incidents.value
+  syncHistoryStatuses(value.incidents as IncidentFeedItem[])
+  await notifyNewIncidents(value.incidents as IncidentFeedItem[])
 })
+
+function syncHistoryStatuses(nextIncidents: IncidentFeedItem[]) {
+  const statusByIncident = new Map(nextIncidents.map(incident => [incident.id, incident.status]))
+
+  history.value = history.value.map((item) => {
+    const status = statusByIncident.get(item.id)
+    return status ? { ...item, status } : item
+  })
+}
 
 function confirmSetLocation() {
   useSetLocation.value = true
@@ -101,18 +118,41 @@ async function selectTab(tab: 'dashboard' | 'history') {
 }
 
 async function submitReport() {
+  if (alreadyReported.value) {
+    toast.add({
+      title: 'Already reported',
+      description: 'You already reported an active fire incident. Please wait for responder updates.',
+      color: 'warning',
+      icon: 'i-lucide-triangle-alert'
+    })
+    return
+  }
+
   pending.value = true
 
   try {
+    let result
+
     if (useSetLocation.value) {
-      await reportIncident({ useRegistered: true })
+      result = await reportIncident({ useRegistered: true })
     } else {
-      await reportIncident({
+      result = await reportIncident({
         useRegistered: false,
         longitude: manualMarker.value[0],
         latitude: manualMarker.value[1],
         address: 'Manually pinned location'
       })
+    }
+
+    if (result.alreadyReported) {
+      toast.add({
+        title: 'Already reported',
+        description: 'You already reported this active fire incident. Please wait for updates.',
+        color: 'warning',
+        icon: 'i-lucide-triangle-alert'
+      })
+      await fetchHistory()
+      return
     }
 
     statusMessage.value = 'Fire report submitted successfully.'

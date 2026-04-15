@@ -2,6 +2,7 @@
 const { user, refreshUser, logout } = useAuthSession()
 const { incidents, fetchIncidents, updateIncidentStatus, updateResponderLocation, assignPointPerson } = useIncidents()
 const { payload, connect, disconnect } = useIncidentSocket()
+const { rememberIncidents, notifyNewIncidents } = useIncidentPwaNotifications()
 
 const actionError = ref('')
 
@@ -13,14 +14,18 @@ onMounted(async () => {
   }
 
   await fetchIncidents()
+  rememberIncidents(incidents.value)
   connect()
 })
 
 onBeforeUnmount(() => disconnect())
 
-watch(payload, (value) => {
-  if (value?.incidents)
-    incidents.value = value.incidents as typeof incidents.value
+watch(payload, async (value) => {
+  if (!value?.incidents)
+    return
+
+  incidents.value = value.incidents as typeof incidents.value
+  await notifyNewIncidents(value.incidents as typeof incidents.value)
 })
 
 async function runAction(incidentId: string, action: 'validate' | 'start_timer' | 'dispatch' | 'complete') {
