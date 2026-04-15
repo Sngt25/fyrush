@@ -2,9 +2,7 @@
 const props = defineProps<{
   locationPromptOpen: boolean
   mapDialogOpen: boolean
-  submitConfirmOpen: boolean
   useSetLocation: boolean
-  pending: boolean
   manualMarker: [number, number]
   setLocationPoint: [number, number]
 }>()
@@ -12,11 +10,9 @@ const props = defineProps<{
 const emit = defineEmits<{
   'update:locationPromptOpen': [value: boolean]
   'update:mapDialogOpen': [value: boolean]
-  'update:submitConfirmOpen': [value: boolean]
   'update:manualMarker': [value: [number, number]]
   'chooseManualLocation': []
   'confirmSetLocation': []
-  'submitReport': []
 }>()
 
 const locationPromptModel = computed({
@@ -27,11 +23,6 @@ const locationPromptModel = computed({
 const mapDialogModel = computed({
   get: () => props.mapDialogOpen,
   set: (value: boolean) => emit('update:mapDialogOpen', value)
-})
-
-const submitConfirmModel = computed({
-  get: () => props.submitConfirmOpen,
-  set: (value: boolean) => emit('update:submitConfirmOpen', value)
 })
 
 const manualMarkerModel = computed({
@@ -105,38 +96,6 @@ const manualMarkerModel = computed({
           @click="mapDialogModel = false"
         >
           Use this pin
-        </UButton>
-      </div>
-    </template>
-  </UModal>
-
-  <UModal
-    v-model:open="submitConfirmModel"
-    title="Send fire report now?"
-  >
-    <template #body>
-      <p class="text-sm text-muted">
-        This will alert responders immediately for {{ useSetLocation ? 'Barangay Kalipay set location' : 'your pinned map location' }}.
-      </p>
-    </template>
-
-    <template #footer>
-      <div class="w-full flex gap-2">
-        <UButton
-          color="neutral"
-          variant="outline"
-          block
-          @click="submitConfirmModel = false"
-        >
-          Cancel
-        </UButton>
-        <UButton
-          color="error"
-          block
-          :loading="pending"
-          @click="$emit('submitReport')"
-        >
-          Confirm and Submit
         </UButton>
       </div>
     </template>

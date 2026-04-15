@@ -8,7 +8,6 @@ const { incidents, history, fetchIncidents, fetchHistory, reportIncident } = use
 const { payload, connect, disconnect } = useIncidentSocket()
 
 const locationPromptOpen = ref(false)
-const submitConfirmOpen = ref(false)
 const mapDialogOpen = ref(false)
 const useSetLocation = ref(true)
 const pending = ref(false)
@@ -64,7 +63,7 @@ onMounted(async () => {
   connect()
 
   locationPromptOpen.value = true
-  statusMessage.value = 'Confirm where the fire is before sending your alert.'
+  statusMessage.value = 'Confirm where the fire is, then tap REPORT FIRE three times quickly.'
 })
 
 onBeforeUnmount(() => disconnect())
@@ -78,14 +77,14 @@ function confirmSetLocation() {
   useSetLocation.value = true
   locationPromptOpen.value = false
   mapDialogOpen.value = false
-  statusMessage.value = 'Set location confirmed. Tap REPORT FIRE to send an alert.'
+  statusMessage.value = 'Set location confirmed. Tap REPORT FIRE three times quickly.'
 }
 
 function chooseManualLocation() {
   useSetLocation.value = false
   locationPromptOpen.value = false
   mapDialogOpen.value = true
-  statusMessage.value = 'Tap on the map to pin the exact fire location, then report.'
+  statusMessage.value = 'Tap on the map to pin the exact fire location, then triple tap REPORT FIRE.'
 }
 
 function openMapDialog() {
@@ -117,7 +116,6 @@ async function submitReport() {
     }
 
     statusMessage.value = 'Fire report submitted successfully.'
-    submitConfirmOpen.value = false
     await fetchHistory()
   } catch (err) {
     statusMessage.value = err instanceof Error ? err.message : 'Report submission failed.'
@@ -145,7 +143,7 @@ async function signOut() {
         :latest-incident="latestIncident"
         :history="dashboardHistory"
         :status-message="statusMessage"
-        @open-submit="submitConfirmOpen = true"
+        @open-submit="submitReport"
         @open-location-prompt="locationPromptOpen = true"
         @open-map="openMapDialog"
         @open-history="selectTab('history')"
@@ -175,7 +173,7 @@ async function signOut() {
         :latest-incident="latestIncident"
         :history="dashboardHistory"
         :status-message="statusMessage"
-        @open-submit="submitConfirmOpen = true"
+        @open-submit="submitReport"
         @open-map="openMapDialog"
         @open-history="selectTab('history')"
       />
@@ -197,14 +195,11 @@ async function signOut() {
     <CitizenReportDialogs
       v-model:location-prompt-open="locationPromptOpen"
       v-model:map-dialog-open="mapDialogOpen"
-      v-model:submit-confirm-open="submitConfirmOpen"
       v-model:manual-marker="manualMarker"
       :use-set-location="useSetLocation"
-      :pending="pending"
       :set-location-point="setLocationPoint"
       @choose-manual-location="chooseManualLocation"
       @confirm-set-location="confirmSetLocation"
-      @submit-report="submitReport"
     />
   </div>
 </template>

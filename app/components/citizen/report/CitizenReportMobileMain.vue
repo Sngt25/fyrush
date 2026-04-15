@@ -62,21 +62,10 @@ defineEmits<{
     </div>
 
     <div class="flex justify-center pt-2">
-      <button
-        class="fyrush-report-ring"
-        type="button"
-        :disabled="pending"
-        @click="$emit('openSubmit')"
-      >
-        <span class="fyrush-report-core">
-          <UIcon
-            name="i-lucide-flame"
-            class="size-14 text-white"
-          />
-          <span class="text-2xl font-black tracking-tight leading-none">REPORT</span>
-          <span class="text-2xl font-black tracking-tight leading-none">FIRE</span>
-        </span>
-      </button>
+      <CitizenReportTriggerButton
+        :pending="pending"
+        @trigger="$emit('openSubmit')"
+      />
     </div>
 
     <p class="text-center text-sm text-muted">
