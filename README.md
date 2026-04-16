@@ -38,7 +38,9 @@ pnpm install
 Set these environment variables before running the app:
 
 ```bash
-NUXT_PUBLIC_GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+NUXT_PUBLIC_GOOGLE_AUTH_CLIENT_ID=your-client-id.apps.googleusercontent.com
+# Backward-compatible fallback also supported:
+# NUXT_PUBLIC_GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
 BFP_EMAIL=firestation@example.com
 ```
 

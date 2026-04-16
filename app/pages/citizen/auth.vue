@@ -3,34 +3,69 @@ const config = useRuntimeConfig()
 const pending = ref(false)
 const error = ref('')
 const isGoogleReady = ref(false)
+let readyTimeoutId: number | null = null
+let readyPollId: number | null = null
 
 const googleClientId = computed(() => String(config.public.googleAuth?.clientId || config.public.googleClientId || '').trim())
 const hasGoogleClientId = computed(() => googleClientId.value.length > 0)
 
 const { googleLogin } = useAuthSession()
 
+function markGoogleReady() {
+  isGoogleReady.value = true
+
+  if (readyTimeoutId !== null) {
+    window.clearTimeout(readyTimeoutId)
+    readyTimeoutId = null
+  }
+
+  if (readyPollId !== null) {
+    window.clearInterval(readyPollId)
+    readyPollId = null
+  }
+}
+
+function onGoogleReadyEvent() {
+  markGoogleReady()
+}
+
+function hasGoogleGisReady() {
+  const googleApi = (window as Window & { google?: { accounts?: { id?: unknown } } }).google
+  return Boolean(googleApi?.accounts?.id)
+}
+
 onMounted(() => {
   if (!hasGoogleClientId.value) {
-    error.value = 'Google Sign-In is not configured. Set NUXT_PUBLIC_GOOGLE_CLIENT_ID in the deployed environment.'
+    error.value = 'Google Sign-In is not configured. Set NUXT_PUBLIC_GOOGLE_AUTH_CLIENT_ID (or NUXT_PUBLIC_GOOGLE_CLIENT_ID) in the deployed environment.'
     return
   }
 
-  const readyListener = () => {
-    isGoogleReady.value = true
-  }
+  if (hasGoogleGisReady())
+    markGoogleReady()
 
-  window.addEventListener('nuxt-google-auth:ready', readyListener)
+  window.addEventListener('nuxt-google-auth:ready', onGoogleReadyEvent)
 
-  const timeoutId = window.setTimeout(() => {
+  // Fallback polling for environments where the ready event may fire before listener attach.
+  readyPollId = window.setInterval(() => {
+    if (hasGoogleGisReady())
+      markGoogleReady()
+  }, 250)
+
+  readyTimeoutId = window.setTimeout(() => {
     if (!isGoogleReady.value) {
       error.value = 'Google Sign-In is taking too long to load. Check Google OAuth authorized origins and browser blockers.'
     }
   }, 7000)
+})
 
-  onBeforeUnmount(() => {
-    window.removeEventListener('nuxt-google-auth:ready', readyListener)
-    window.clearTimeout(timeoutId)
-  })
+onBeforeUnmount(() => {
+  window.removeEventListener('nuxt-google-auth:ready', onGoogleReadyEvent)
+
+  if (readyTimeoutId !== null)
+    window.clearTimeout(readyTimeoutId)
+
+  if (readyPollId !== null)
+    window.clearInterval(readyPollId)
 })
 
 async function onGoogleSuccess(payload: { credential?: string }) {

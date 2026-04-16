@@ -1,4 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+const resolvedGoogleClientId = process.env.NUXT_PUBLIC_GOOGLE_AUTH_CLIENT_ID || process.env.NUXT_PUBLIC_GOOGLE_CLIENT_ID || ''
+
 export default defineNuxtConfig({
 
   modules: ['@nuxt/eslint', '@nuxt/ui', '@nuxt/image', '@nuxthub/core', '@vite-pwa/nuxt', '@nuxtjs/leaflet', 'nuxt-google-auth'],
@@ -11,9 +13,9 @@ export default defineNuxtConfig({
   runtimeConfig: {
     bfpEmail: process.env.BFP_EMAIL,
     public: {
-      googleClientId: process.env.NUXT_PUBLIC_GOOGLE_CLIENT_ID,
+      googleClientId: resolvedGoogleClientId,
       googleAuth: {
-        clientId: process.env.NUXT_PUBLIC_GOOGLE_CLIENT_ID,
+        clientId: resolvedGoogleClientId,
         promptOneTap: false
       },
       barangayCenter: [123.622003, 12.3717467]
@@ -48,7 +50,7 @@ export default defineNuxtConfig({
   },
 
   googleAuth: {
-    clientId: process.env.NUXT_PUBLIC_GOOGLE_CLIENT_ID,
+    clientId: resolvedGoogleClientId,
     autoLoadScript: true,
     promptOneTap: false,
     enableServerVerify: true
