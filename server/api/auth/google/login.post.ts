@@ -1,4 +1,3 @@
-import { randomUUID } from 'node:crypto'
 import { and, eq, or } from 'drizzle-orm'
 import { createRemoteJWKSet, jwtVerify } from 'jose'
 import { USER_ROLE, type UserRole } from '#shared/fyrush'
@@ -60,7 +59,7 @@ export default defineEventHandler(async (event) => {
   const profileComplete = Boolean(row?.mobile?.trim() && row?.address?.trim())
 
   if (!row) {
-    const id = randomUUID()
+    const id = globalThis.crypto.randomUUID()
 
     await db.insert(schema.users).values({
       id,
@@ -76,7 +75,7 @@ export default defineEventHandler(async (event) => {
       profileCompletedAt: null,
       registeredLat: null,
       registeredLng: null,
-      passwordHash: createPasswordHash(randomUUID()),
+      passwordHash: await createPasswordHash(globalThis.crypto.randomUUID()),
       createdAt: now
     })
   } else {

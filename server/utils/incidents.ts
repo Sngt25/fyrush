@@ -1,4 +1,3 @@
-import { randomUUID } from 'node:crypto'
 import { and, desc, eq, gte, sql } from 'drizzle-orm'
 import { db, schema } from 'hub:db'
 import { INCIDENT_STATUS } from '#shared/fyrush'
@@ -80,7 +79,7 @@ export async function createIncidentReport(input: {
         .where(eq(schema.incidents.id, incidentId))
     }
   } else {
-    incidentId = randomUUID()
+    incidentId = globalThis.crypto.randomUUID()
 
     await db.insert(schema.incidents).values({
       id: incidentId,
@@ -100,7 +99,7 @@ export async function createIncidentReport(input: {
 
   if (!alreadyReported) {
     await db.insert(schema.incidentReports).values({
-      id: randomUUID(),
+      id: globalThis.crypto.randomUUID(),
       incidentId,
       userId: input.userId,
       source: input.source,

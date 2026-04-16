@@ -1,13 +1,13 @@
-import { createHash, randomUUID } from 'node:crypto'
 import { createError, deleteCookie, getCookie, setCookie, type H3Event } from 'h3'
 import { and, eq } from 'drizzle-orm'
 import type { AuthUser, UserRole } from '#shared/fyrush'
 import { USER_ROLE } from '#shared/fyrush'
 import { db, schema } from 'hub:db'
-import { kv } from 'hub:kv'
 
 const SESSION_COOKIE = 'fyrush_session'
 const SESSION_PREFIX = 'session:'
+const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7
+const SESSION_TTL_MS = SESSION_TTL_SECONDS * 1000
 const DEFAULT_BFP_LOGIN_ID = 'KALIPAY-BFP-01'
 const DEFAULT_BFP_PASSWORD = 'bfp12345'
 
@@ -15,10 +15,22 @@ interface SessionRecord {
   userId: string
   role: UserRole
   createdAt: number
+  expiresAt: number
 }
 
-function hashPassword(raw: string) {
-  return createHash('sha256').update(raw).digest('hex')
+function randomId() {
+  return globalThis.crypto.randomUUID()
+}
+
+async function hashPassword(raw: string) {
+  const bytes = new TextEncoder().encode(raw)
+  const digest = await globalThis.crypto.subtle.digest('SHA-256', bytes)
+
+  return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('')
+}
+
+function getSessionStorage() {
+  return useStorage<SessionRecord>('auth:sessions')
 }
 
 function mapUser(row: typeof schema.users.$inferSelect): AuthUser {
@@ -38,12 +50,12 @@ function mapUser(row: typeof schema.users.$inferSelect): AuthUser {
   }
 }
 
-export function verifyPassword(raw: string, passwordHash: string) {
-  return hashPassword(raw) === passwordHash
+export async function verifyPassword(raw: string, passwordHash: string) {
+  return await hashPassword(raw) === passwordHash
 }
 
-export function createPasswordHash(raw: string) {
-  return hashPassword(raw)
+export async function createPasswordHash(raw: string) {
+  return await hashPassword(raw)
 }
 
 export async function ensureBfpUser() {
@@ -55,7 +67,7 @@ export async function ensureBfpUser() {
     return bfpUser
 
   const now = Date.now()
-  const id = randomUUID()
+  const id = randomId()
   const payload: typeof schema.users.$inferInsert = {
     id,
     role: USER_ROLE.BFP,
@@ -66,7 +78,7 @@ export async function ensureBfpUser() {
     address: 'Barangay Kalipay Station',
     registeredLat: null,
     registeredLng: null,
-    passwordHash: createPasswordHash(DEFAULT_BFP_PASSWORD),
+    passwordHash: await createPasswordHash(DEFAULT_BFP_PASSWORD),
     createdAt: now
   }
 
@@ -75,27 +87,29 @@ export async function ensureBfpUser() {
 }
 
 export async function createSession(event: H3Event, user: AuthUser) {
-  const token = randomUUID()
+  const token = randomId()
+  const now = Date.now()
   const session: SessionRecord = {
     userId: user.id,
     role: user.role,
-    createdAt: Date.now()
+    createdAt: now,
+    expiresAt: now + SESSION_TTL_MS
   }
 
-  await kv.set(`${SESSION_PREFIX}${token}`, session, { ttl: 60 * 60 * 24 * 7 })
+  await getSessionStorage().setItem(`${SESSION_PREFIX}${token}`, session)
   setCookie(event, SESSION_COOKIE, token, {
     path: '/',
     httpOnly: true,
     sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
-    maxAge: 60 * 60 * 24 * 7
+    secure: !import.meta.dev,
+    maxAge: SESSION_TTL_SECONDS
   })
 }
 
 export async function clearAuthSession(event: H3Event) {
   const token = getCookie(event, SESSION_COOKIE)
   if (token)
-    await kv.del(`${SESSION_PREFIX}${token}`)
+    await getSessionStorage().removeItem(`${SESSION_PREFIX}${token}`)
 
   deleteCookie(event, SESSION_COOKIE, { path: '/' })
 }
@@ -105,9 +119,15 @@ export async function getCurrentUser(event: H3Event): Promise<AuthUser | null> {
   if (!token)
     return null
 
-  const session = await kv.get<SessionRecord>(`${SESSION_PREFIX}${token}`)
+  const session = await getSessionStorage().getItem(`${SESSION_PREFIX}${token}`)
   if (!session)
     return null
+
+  if (session.expiresAt <= Date.now()) {
+    await getSessionStorage().removeItem(`${SESSION_PREFIX}${token}`)
+    deleteCookie(event, SESSION_COOKIE, { path: '/' })
+    return null
+  }
 
   const row = await db.query.users.findFirst({
     where: and(eq(schema.users.id, session.userId), eq(schema.users.role, session.role))
