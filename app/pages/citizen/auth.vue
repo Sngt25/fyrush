@@ -113,7 +113,7 @@ function onGoogleError(err: unknown) {
 
       <div class="space-y-4">
         <div class="flex justify-center">
-          <ClientOnly v-if="hasGoogleClientId">
+          <ClientOnly v-if="hasGoogleClientId && isGoogleReady">
             <GoogleLoginButton
               :options="{ theme: 'filled_blue', size: 'large', text: 'continue_with', shape: 'pill' }"
               @success="onGoogleSuccess"
