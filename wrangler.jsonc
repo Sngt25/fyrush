@@ -3,10 +3,7 @@
   "name": "fyrush",
   "main": ".output/server/index.mjs",
   "compatibility_date": "2025-01-15",
-  "compatibility_flags": [
-    "nodejs_compat",
-    "no_nodejs_compat_v2"
-  ],
+  "compatibility_flags": ["nodejs_compat", "no_nodejs_compat_v2"],
 
   "d1_databases": [
     {
@@ -21,5 +18,9 @@
       "binding": "KV",
       "id": "0fc8cc6837d141e08aba68bcd5d8683a"
     }
-  ]
+  ],
+  "durable_objects": {
+    "bindings": [{ "name": "$DurableObject", "class_name": "$DurableObject" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["$DurableObject"] }]
 }
