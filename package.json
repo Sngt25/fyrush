@@ -23,7 +23,9 @@
     "better-sqlite3": "^12.8.0",
     "drizzle-kit": "^0.31.10",
     "drizzle-orm": "^0.45.2",
+    "jose": "^6.2.2",
     "nuxt": "^4.4.2",
+    "nuxt-google-auth": "^0.1.7",
     "tailwindcss": "^4.2.2",
     "unstorage": "^1.17.5"
   },

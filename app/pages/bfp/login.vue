@@ -1,62 +1,29 @@
 <script setup lang="ts">
-const loginId = ref('KALIPAY-BFP-01')
-const password = ref('bfp12345')
-const error = ref('')
-const pending = ref(false)
-
-const { bfpLogin } = useAuthSession()
-
-async function submit() {
-  error.value = ''
-  pending.value = true
-
-  try {
-    const user = await bfpLogin({ loginId: loginId.value, password: password.value })
-    if (user.role === 'bfp')
-      await navigateTo('/bfp/dashboard')
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Login failed.'
-  } finally {
-    pending.value = false
-  }
-}
+await navigateTo('/citizen/auth')
 </script>
 
 <template>
-  <UContainer class="py-10 max-w-md">
+  <UContainer class="py-10 max-w-lg">
     <UCard class="fyrush-panel">
       <template #header>
         <h1 class="text-2xl font-bold">
-          BFP Login
+          BFP Login moved to Google Sign-In
         </h1>
       </template>
 
-      <div class="space-y-4">
-        <UFormField label="Department ID">
-          <UInput v-model="loginId" />
-        </UFormField>
-        <UFormField label="Password">
-          <UInput
-            v-model="password"
-            type="password"
-          />
-        </UFormField>
+      <div class="space-y-4 text-sm">
+        <p class="text-muted">
+          BFP access now uses the same Google Sign-In page as citizens. The account that matches
+          <span class="font-semibold">BFP_EMAIL</span> is assigned the BFP role automatically.
+        </p>
 
         <UButton
+          to="/citizen/auth"
           block
           color="warning"
-          :loading="pending"
-          @click="submit"
         >
-          Login
+          Go to Google Sign-In
         </UButton>
-
-        <p
-          v-if="error"
-          class="text-sm text-error"
-        >
-          {{ error }}
-        </p>
       </div>
     </UCard>
   </UContainer>

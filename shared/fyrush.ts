@@ -26,6 +26,9 @@ export interface AuthUser {
   name: string
   email: string | null
   mobile: string | null
+  address: string | null
+  authProvider: 'google' | 'legacy'
+  profileComplete: boolean
   registeredLat: number | null
   registeredLng: number | null
 }

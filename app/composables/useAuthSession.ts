@@ -16,35 +16,22 @@ export function useAuthSession() {
     }
   }
 
-  async function citizenSignup(payload: {
-    name: string
-    email: string
-    password: string
-  }) {
-    const response = await $fetch<{ ok: boolean, user: AuthUser }>('/api/auth/citizen/signup', {
+  async function googleLogin(credential: string) {
+    const response = await $fetch<{ ok: boolean, user: AuthUser, nextPath: string }>('/api/auth/google/login', {
       method: 'POST',
-      body: payload
+      body: { credential }
     })
     user.value = response.user
-    return response.user
+    return response
   }
 
-  async function citizenLogin(payload: { email: string, password: string }) {
-    const response = await $fetch<{ ok: boolean, user: AuthUser }>('/api/auth/citizen/login', {
+  async function completeProfile(payload: { mobile: string, address: string }) {
+    const response = await $fetch<{ ok: boolean, user: AuthUser, nextPath: string }>('/api/auth/profile', {
       method: 'POST',
       body: payload
     })
     user.value = response.user
-    return response.user
-  }
-
-  async function bfpLogin(payload: { loginId: string, password: string }) {
-    const response = await $fetch<{ ok: boolean, user: AuthUser }>('/api/auth/bfp/login', {
-      method: 'POST',
-      body: payload
-    })
-    user.value = response.user
-    return response.user
+    return response
   }
 
   async function logout() {
@@ -56,9 +43,8 @@ export function useAuthSession() {
     user,
     loading,
     refreshUser,
-    citizenSignup,
-    citizenLogin,
-    bfpLogin,
+    googleLogin,
+    completeProfile,
     logout
   }
 }

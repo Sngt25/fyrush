@@ -35,6 +35,13 @@ Make sure to install the dependencies:
 pnpm install
 ```
 
+Set these environment variables before running the app:
+
+```bash
+NUXT_PUBLIC_GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+BFP_EMAIL=firestation@example.com
+```
+
 ## Development Server
 
 Start the development server on `http://localhost:3000`:

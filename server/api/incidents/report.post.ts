@@ -1,9 +1,9 @@
 import { BARANGAY_KALIPAY_CENTER, USER_ROLE } from '#shared/fyrush'
-import { requireUser } from '../../utils/auth'
+import { requireCompleteUser } from '../../utils/auth'
 import { createIncidentReport } from '../../utils/incidents'
 
 export default defineEventHandler(async (event) => {
-  const user = await requireUser(event, [USER_ROLE.CITIZEN, USER_ROLE.POINT_PERSON])
+  const user = await requireCompleteUser(event, [USER_ROLE.CITIZEN, USER_ROLE.POINT_PERSON])
 
   const body = await readBody<{
     useRegistered?: boolean

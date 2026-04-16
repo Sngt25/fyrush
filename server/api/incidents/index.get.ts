@@ -1,11 +1,11 @@
 import { eq } from 'drizzle-orm'
 import { db, schema } from 'hub:db'
 import { USER_ROLE } from '#shared/fyrush'
-import { requireUser } from '../../utils/auth'
+import { requireCompleteUser } from '../../utils/auth'
 import { listIncidentFeed } from '../../utils/incidents'
 
 export default defineEventHandler(async (event) => {
-  const user = await requireUser(event)
+  const user = await requireCompleteUser(event)
   const incidents = await listIncidentFeed()
 
   if (user.role === USER_ROLE.BFP) {

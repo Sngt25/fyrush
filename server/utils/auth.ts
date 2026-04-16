@@ -22,12 +22,17 @@ function hashPassword(raw: string) {
 }
 
 function mapUser(row: typeof schema.users.$inferSelect): AuthUser {
+  const profileComplete = Boolean(row.profileComplete && row.mobile?.trim() && row.address?.trim())
+
   return {
     id: row.id,
     role: row.role as UserRole,
     name: row.name,
     email: row.email,
     mobile: row.mobile,
+    address: row.address,
+    authProvider: row.authProvider === 'google' ? 'google' : 'legacy',
+    profileComplete,
     registeredLat: row.registeredLat,
     registeredLng: row.registeredLng
   }
@@ -124,6 +129,23 @@ export async function requireUser(event: H3Event, allowedRoles?: UserRole[]) {
     throw createError({ statusCode: 403, statusMessage: 'Forbidden' })
 
   return user
+}
+
+export async function requireCompleteUser(event: H3Event, allowedRoles?: UserRole[]) {
+  const user = await requireUser(event, allowedRoles)
+
+  if (!user.profileComplete) {
+    throw createError({
+      statusCode: 428,
+      statusMessage: 'Profile is incomplete. Please add mobile number and address first.'
+    })
+  }
+
+  return user
+}
+
+export function normalizeEmail(email: string) {
+  return email.trim().toLowerCase()
 }
 
 export function toAuthUser(row: typeof schema.users.$inferSelect): AuthUser {

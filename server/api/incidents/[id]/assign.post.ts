@@ -1,10 +1,10 @@
 import { and, eq } from 'drizzle-orm'
 import { db, schema } from 'hub:db'
 import { USER_ROLE } from '#shared/fyrush'
-import { requireUser } from '../../../utils/auth'
+import { requireCompleteUser } from '../../../utils/auth'
 
 export default defineEventHandler(async (event) => {
-  const bfpUser = await requireUser(event, [USER_ROLE.BFP])
+  const bfpUser = await requireCompleteUser(event, [USER_ROLE.BFP])
 
   const incidentId = getRouterParam(event, 'id')
   if (!incidentId)

@@ -1,7 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  modules: ['@nuxt/eslint', '@nuxt/ui', '@nuxt/image', '@nuxthub/core', '@vite-pwa/nuxt', '@nuxtjs/leaflet'],
 
+  modules: ['@nuxt/eslint', '@nuxt/ui', '@nuxt/image', '@nuxthub/core', '@vite-pwa/nuxt', '@nuxtjs/leaflet', 'nuxt-google-auth'],
   devtools: {
     enabled: true
   },
@@ -9,7 +9,9 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
 
   runtimeConfig: {
+    bfpEmail: process.env.BFP_EMAIL,
     public: {
+      googleClientId: process.env.NUXT_PUBLIC_GOOGLE_CLIENT_ID,
       barangayCenter: [123.622003, 12.3717467]
     }
   },
@@ -38,6 +40,13 @@ export default defineNuxtConfig({
         braceStyle: '1tbs'
       }
     }
+  },
+
+  googleAuth: {
+    clientId: process.env.NUXT_PUBLIC_GOOGLE_CLIENT_ID,
+    autoLoadScript: true,
+    promptOneTap: false,
+    enableServerVerify: true
   },
 
   pwa: {

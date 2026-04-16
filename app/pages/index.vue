@@ -15,15 +15,7 @@
           color="error"
           block
         >
-          Citizen Login / Sign Up
-        </UButton>
-        <UButton
-          to="/bfp/login"
-          size="xl"
-          color="warning"
-          block
-        >
-          BFP Personnel Login
+          Continue with Google
         </UButton>
       </div>
     </UCard>

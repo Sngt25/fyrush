@@ -1,51 +1,30 @@
 <script setup lang="ts">
-const mode = ref<'login' | 'signup'>('login')
 const pending = ref(false)
 const error = ref('')
 
-const loginForm = reactive({
-  email: '',
-  password: ''
-})
+const { googleLogin } = useAuthSession()
 
-const signupForm = reactive({
-  name: '',
-  email: '',
-  password: ''
-})
+async function onGoogleSuccess(payload: { credential?: string }) {
+  if (!payload.credential) {
+    error.value = 'Google did not return a credential. Please try again.'
+    return
+  }
 
-const { citizenLogin, citizenSignup } = useAuthSession()
-
-async function submitLogin() {
   pending.value = true
   error.value = ''
 
   try {
-    await citizenLogin({
-      email: loginForm.email,
-      password: loginForm.password
-    })
-
-    await navigateTo('/citizen/report')
+    const result = await googleLogin(payload.credential)
+    await navigateTo(result.nextPath)
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Unable to log in.'
+    error.value = err instanceof Error ? err.message : 'Unable to log in with Google.'
   } finally {
     pending.value = false
   }
 }
 
-async function submitSignup() {
-  pending.value = true
-  error.value = ''
-
-  try {
-    await citizenSignup({ ...signupForm })
-    await navigateTo('/citizen/report')
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Unable to create account.'
-  } finally {
-    pending.value = false
-  }
+function onGoogleError(err: unknown) {
+  error.value = err instanceof Error ? err.message : 'Google sign-in failed.'
 }
 </script>
 
@@ -57,94 +36,43 @@ async function submitSignup() {
           <div class="flex justify-center">
             <AppLogo class="w-44 h-auto" />
           </div>
-          <div class="flex items-center justify-between gap-3">
+          <div class="space-y-1 text-center">
             <h1 class="text-2xl font-black fyrush-title">
-              Citizen {{ mode === 'login' ? 'Login' : 'Sign Up' }}
+              Continue with Google
             </h1>
-            <UButton
-              color="neutral"
-              variant="ghost"
-              @click="mode = mode === 'login' ? 'signup' : 'login'"
-            >
-              {{ mode === 'login' ? 'Create account' : 'Have account?' }}
-            </UButton>
+            <p class="text-sm text-muted">
+              Sign in for citizen access. The BFP account is detected by the configured BFP_EMAIL.
+            </p>
           </div>
         </div>
       </template>
 
-      <div
-        v-if="mode === 'login'"
-        class="space-y-4"
-      >
-        <UFormField
-          label="Email Address"
-          class="w-full"
-        >
-          <UInput
-            v-model="loginForm.email"
-            type="email"
-            class="w-full"
-          />
-        </UFormField>
-        <UFormField
-          label="Password"
-          class="w-full"
-        >
-          <UInput
-            v-model="loginForm.password"
-            type="password"
-            class="w-full"
-          />
-        </UFormField>
+      <div class="space-y-4">
+        <div class="flex justify-center">
+          <ClientOnly>
+            <GoogleLoginButton
+              :options="{ theme: 'filled_blue', size: 'large', text: 'continue_with', shape: 'pill' }"
+              @success="onGoogleSuccess"
+              @error="onGoogleError"
+            />
+          </ClientOnly>
+        </div>
+
+        <UAlert
+          color="neutral"
+          variant="soft"
+          icon="i-lucide-shield-check"
+          title="Profile completion required"
+          description="New sign-ins must provide mobile number and address before protected pages are unlocked."
+        />
 
         <UButton
+          to="/"
+          variant="ghost"
           block
-          color="error"
-          :loading="pending"
-          @click="submitLogin"
+          :disabled="pending"
         >
-          Log In
-        </UButton>
-      </div>
-
-      <div v-else class="space-y-4">
-        <UFormField
-          label="Name"
-          class="w-full"
-        >
-          <UInput
-            v-model="signupForm.name"
-            class="w-full"
-          />
-        </UFormField>
-        <UFormField
-          label="Email Address"
-          class="w-full"
-        >
-          <UInput
-            v-model="signupForm.email"
-            type="email"
-            class="w-full"
-          />
-        </UFormField>
-        <UFormField
-          label="Password"
-          class="w-full"
-        >
-          <UInput
-            v-model="signupForm.password"
-            type="password"
-            class="w-full"
-          />
-        </UFormField>
-
-        <UButton
-          block
-          color="error"
-          :loading="pending"
-          @click="submitSignup"
-        >
-          Sign Up
+          Back to Home
         </UButton>
       </div>
 

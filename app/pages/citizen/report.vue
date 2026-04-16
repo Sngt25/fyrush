@@ -4,7 +4,7 @@ import { BARANGAY_KALIPAY_CENTER, INCIDENT_STATUS, type IncidentFeedItem } from 
 
 const route = useRoute()
 const toast = useToast()
-const { refreshUser, logout } = useAuthSession()
+const { logout } = useAuthSession()
 const { incidents, history, fetchIncidents, fetchHistory, reportIncident } = useIncidents()
 const { payload, connect, disconnect } = useIncidentSocket()
 const { rememberIncidents, notifyNewIncidents } = useIncidentPwaNotifications()
@@ -56,12 +56,6 @@ const bottomNavItems = computed<NavigationMenuItem[]>(() => [
 ])
 
 onMounted(async () => {
-  const current = await refreshUser()
-  if (!current || current.role === 'bfp') {
-    await navigateTo('/citizen/auth')
-    return
-  }
-
   await Promise.all([fetchIncidents(), fetchHistory()])
   rememberIncidents(incidents.value)
   connect()

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { user, refreshUser, logout } = useAuthSession()
+const { user, logout } = useAuthSession()
 const { incidents, fetchIncidents, updateIncidentStatus, updateResponderLocation, assignPointPerson } = useIncidents()
 const { payload, connect, disconnect } = useIncidentSocket()
 const { rememberIncidents, notifyNewIncidents } = useIncidentPwaNotifications()
@@ -7,12 +7,6 @@ const { rememberIncidents, notifyNewIncidents } = useIncidentPwaNotifications()
 const actionError = ref('')
 
 onMounted(async () => {
-  const current = await refreshUser()
-  if (!current || current.role !== 'bfp') {
-    await navigateTo('/bfp/login')
-    return
-  }
-
   await fetchIncidents()
   rememberIncidents(incidents.value)
   connect()

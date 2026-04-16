@@ -44,9 +44,15 @@ importers:
       drizzle-orm:
         specifier: ^0.45.2
         version: 0.45.2(@cloudflare/workers-types@4.20260413.1)(@libsql/client@0.17.2)(better-sqlite3@12.9.0)
+      jose:
+        specifier: ^6.2.2
+        version: 6.2.2
       nuxt:
         specifier: ^4.4.2
         version: 4.4.2(df998390b68967ec5dcfa8d439dcac0b)
+      nuxt-google-auth:
+        specifier: ^0.1.7
+        version: 0.1.7(nuxt@4.4.2(df998390b68967ec5dcfa8d439dcac0b))
       tailwindcss:
         specifier: ^4.2.2
         version: 4.2.2
@@ -5039,6 +5045,9 @@ packages:
     resolution: {integrity: sha512-ekilCSN1jwRvIbgeg/57YFh8qQDNbwDb9xT/qu2DAHbFFZUicIl4ygVaAvzveMhMVr3LnpSKTNnwt8PoOfmKhQ==}
     hasBin: true
 
+  jose@6.2.2:
+    resolution: {integrity: sha512-d7kPDd34KO/YnzaDOlikGpOurfF0ByC2sEV4cANCtdqLlTfBlw2p14O/5d/zv40gJPbIQxfES3nSx1/oYNyuZQ==}
+
   js-base64@3.7.8:
     resolution: {integrity: sha512-hNngCeKxIUQiEUN3GPJOkz4wF/YvdUdbNL9hsBcMQTkKzboD7T/q3OYOuuPZLUE6dBxSGpwhk5mwuDud7JVAow==}
 
@@ -5479,6 +5488,12 @@ packages:
 
   nth-check@2.1.1:
     resolution: {integrity: sha512-lqjrjmaOoAnWfMmBPL+XNnynZh2+swxiX3WUE0s4yEHI6m+AwrK2UZOimIRl3X/4QctVqS8AiZjFqyOGrMXb/w==}
+
+  nuxt-google-auth@0.1.7:
+    resolution: {integrity: sha512-C4tEOzXeblcZoLIjAdxwvAqUT4mDtjFe+6gJnAWMydiNmNip7smV5FxxmEdrbzE/AkBlElx2kDgvUdExD/Xj1g==}
+    engines: {node: '>=18.0.0'}
+    peerDependencies:
+      nuxt: ^3.0.0 || ^4.0.0
 
   nuxt@4.4.2:
     resolution: {integrity: sha512-iWVFpr/YEqVU/CenqIHMnIkvb2HE/9f+q8oxZ+pj2et+60NljGRClCgnmbvGPdmNFE0F1bEhoBCYfqbDOCim3Q==}
@@ -12365,6 +12380,8 @@ snapshots:
 
   jiti@2.6.1: {}
 
+  jose@6.2.2: {}
+
   js-base64@3.7.8: {}
 
   js-tokens@4.0.0: {}
@@ -12851,6 +12868,11 @@ snapshots:
   nth-check@2.1.1:
     dependencies:
       boolbase: 1.0.0
+
+  nuxt-google-auth@0.1.7(nuxt@4.4.2(df998390b68967ec5dcfa8d439dcac0b)):
+    dependencies:
+      jose: 6.2.2
+      nuxt: 4.4.2(df998390b68967ec5dcfa8d439dcac0b)
 
   nuxt@4.4.2(df998390b68967ec5dcfa8d439dcac0b):
     dependencies:
