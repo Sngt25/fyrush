@@ -1,0 +1,21 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "fyrush",
+  "main": ".output/server/index.mjs",
+  "compatibility_date": "2025-01-15",
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "fyrush",
+      "database_id": "0c3da0ec-d5c7-45cd-955a-9fca381fcd60",
+      "migrations_dir": "server/db/migrations/sqlite"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "KV",
+      "id": "0fc8cc6837d141e08aba68bcd5d8683a"
+    }
+  ]
+}
