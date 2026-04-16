@@ -1,8 +1,37 @@
 <script setup lang="ts">
+const config = useRuntimeConfig()
 const pending = ref(false)
 const error = ref('')
+const isGoogleReady = ref(false)
+
+const googleClientId = computed(() => String(config.public.googleAuth?.clientId || config.public.googleClientId || '').trim())
+const hasGoogleClientId = computed(() => googleClientId.value.length > 0)
 
 const { googleLogin } = useAuthSession()
+
+onMounted(() => {
+  if (!hasGoogleClientId.value) {
+    error.value = 'Google Sign-In is not configured. Set NUXT_PUBLIC_GOOGLE_CLIENT_ID in the deployed environment.'
+    return
+  }
+
+  const readyListener = () => {
+    isGoogleReady.value = true
+  }
+
+  window.addEventListener('nuxt-google-auth:ready', readyListener)
+
+  const timeoutId = window.setTimeout(() => {
+    if (!isGoogleReady.value) {
+      error.value = 'Google Sign-In is taking too long to load. Check Google OAuth authorized origins and browser blockers.'
+    }
+  }, 7000)
+
+  onBeforeUnmount(() => {
+    window.removeEventListener('nuxt-google-auth:ready', readyListener)
+    window.clearTimeout(timeoutId)
+  })
+})
 
 async function onGoogleSuccess(payload: { credential?: string }) {
   if (!payload.credential) {
@@ -49,13 +78,18 @@ function onGoogleError(err: unknown) {
 
       <div class="space-y-4">
         <div class="flex justify-center">
-          <ClientOnly>
+          <ClientOnly v-if="hasGoogleClientId">
             <GoogleLoginButton
               :options="{ theme: 'filled_blue', size: 'large', text: 'continue_with', shape: 'pill' }"
               @success="onGoogleSuccess"
               @error="onGoogleError"
             />
           </ClientOnly>
+
+          <USkeleton
+            v-if="hasGoogleClientId && !isGoogleReady"
+            class="h-11 w-[300px] rounded-full"
+          />
         </div>
 
         <UAlert

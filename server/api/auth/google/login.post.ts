@@ -26,7 +26,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const config = useRuntimeConfig(event)
-  const audience = config.public.googleClientId
+  const audience = config.public.googleAuth?.clientId || config.public.googleClientId
 
   if (!audience) {
     throw createError({

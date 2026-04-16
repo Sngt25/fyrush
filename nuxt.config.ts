@@ -12,6 +12,10 @@ export default defineNuxtConfig({
     bfpEmail: process.env.BFP_EMAIL,
     public: {
       googleClientId: process.env.NUXT_PUBLIC_GOOGLE_CLIENT_ID,
+      googleAuth: {
+        clientId: process.env.NUXT_PUBLIC_GOOGLE_CLIENT_ID,
+        promptOneTap: false
+      },
       barangayCenter: [123.622003, 12.3717467]
     }
   },

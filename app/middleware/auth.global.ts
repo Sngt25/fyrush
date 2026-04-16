@@ -14,7 +14,11 @@ export default defineNuxtRouteMiddleware(async (to) => {
     return navigateTo('/citizen/auth')
 
   const { user, refreshUser } = useAuthSession()
-  const current = user.value ?? await refreshUser()
+  // Do not block first render of public pages while session bootstrap runs.
+  if (PUBLIC_PATHS.has(to.path) && !user.value)
+    return
+
+  const current = user.value ?? await refreshUser().catch(() => null)
 
   if (!current) {
     if (PUBLIC_PATHS.has(to.path))
