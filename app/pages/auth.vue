@@ -123,7 +123,7 @@ function onGoogleError(err: unknown) {
 
           <USkeleton
             v-if="hasGoogleClientId && !isGoogleReady"
-            class="h-11 w-[300px] rounded-full"
+            class="h-11 w-75 rounded-full"
           />
         </div>
 

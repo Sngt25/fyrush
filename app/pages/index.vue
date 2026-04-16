@@ -1,3 +1,3 @@
 <script setup lang="ts">
-await navigateTo('/citizen/auth')
+await navigateTo('/auth')
 </script>
