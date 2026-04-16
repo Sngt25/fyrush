@@ -3,6 +3,7 @@ import { and, eq } from 'drizzle-orm'
 import type { AuthUser, UserRole } from '#shared/fyrush'
 import { USER_ROLE } from '#shared/fyrush'
 import { db, schema } from 'hub:db'
+import { kv } from 'hub:kv'
 
 const SESSION_COOKIE = 'fyrush_session'
 const SESSION_PREFIX = 'session:'
@@ -31,6 +32,39 @@ async function hashPassword(raw: string) {
 
 function getSessionStorage() {
   return useStorage<SessionRecord>('auth:sessions')
+}
+
+async function writeSession(key: string, session: SessionRecord) {
+  try {
+    await kv.set(key, session, { ttl: SESSION_TTL_SECONDS })
+    return
+  } catch {
+    // Fallback for environments without a KV binding.
+  }
+
+  await getSessionStorage().setItem(key, session)
+}
+
+async function readSession(key: string) {
+  try {
+    const value = await kv.get<SessionRecord>(key)
+    if (value)
+      return value
+  } catch {
+    // Fallback below.
+  }
+
+  return await getSessionStorage().getItem(key)
+}
+
+async function removeSession(key: string) {
+  try {
+    await kv.del(key)
+  } catch {
+    // Fallback below.
+  }
+
+  await getSessionStorage().removeItem(key)
 }
 
 function mapUser(row: typeof schema.users.$inferSelect): AuthUser {
@@ -96,7 +130,7 @@ export async function createSession(event: H3Event, user: AuthUser) {
     expiresAt: now + SESSION_TTL_MS
   }
 
-  await getSessionStorage().setItem(`${SESSION_PREFIX}${token}`, session)
+  await writeSession(`${SESSION_PREFIX}${token}`, session)
   setCookie(event, SESSION_COOKIE, token, {
     path: '/',
     httpOnly: true,
@@ -109,7 +143,7 @@ export async function createSession(event: H3Event, user: AuthUser) {
 export async function clearAuthSession(event: H3Event) {
   const token = getCookie(event, SESSION_COOKIE)
   if (token)
-    await getSessionStorage().removeItem(`${SESSION_PREFIX}${token}`)
+    await removeSession(`${SESSION_PREFIX}${token}`)
 
   deleteCookie(event, SESSION_COOKIE, { path: '/' })
 }
@@ -119,12 +153,12 @@ export async function getCurrentUser(event: H3Event): Promise<AuthUser | null> {
   if (!token)
     return null
 
-  const session = await getSessionStorage().getItem(`${SESSION_PREFIX}${token}`)
+  const session = await readSession(`${SESSION_PREFIX}${token}`)
   if (!session)
     return null
 
   if (session.expiresAt <= Date.now()) {
-    await getSessionStorage().removeItem(`${SESSION_PREFIX}${token}`)
+    await removeSession(`${SESSION_PREFIX}${token}`)
     deleteCookie(event, SESSION_COOKIE, { path: '/' })
     return null
   }

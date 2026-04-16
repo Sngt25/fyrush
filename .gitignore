@@ -24,3 +24,4 @@ logs
 !.env.example
 .agents
 skills-lock.json
+Agents.md
