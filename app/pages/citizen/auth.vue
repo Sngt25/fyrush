@@ -141,7 +141,7 @@ function onGoogleError(err: unknown) {
           block
           :disabled="pending"
         >
-          Back to Home
+          Back
         </UButton>
       </div>
 

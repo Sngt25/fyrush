@@ -11,7 +11,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
     return
 
   if (to.path === '/bfp/login')
-    return navigateTo('/citizen/auth')
+    return navigateTo('/')
 
   const { user, refreshUser } = useAuthSession()
   // Do not block first render of public pages while session bootstrap runs.
@@ -24,7 +24,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
     if (PUBLIC_PATHS.has(to.path))
       return
 
-    return navigateTo('/citizen/auth')
+    return navigateTo('/')
   }
 
   if (!current.profileComplete) {

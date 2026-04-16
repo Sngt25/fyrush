@@ -1,5 +1,5 @@
 <script setup lang="ts">
-await navigateTo('/citizen/auth')
+await navigateTo('/')
 </script>
 
 <template>
@@ -18,7 +18,7 @@ await navigateTo('/citizen/auth')
         </p>
 
         <UButton
-          to="/citizen/auth"
+          to="/"
           block
           color="warning"
         >
