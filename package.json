@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "predev": "nuxt db generate",
     "prebuild": "nuxt db generate",
     "build": "nuxt build",
     "dev": "nuxt dev",

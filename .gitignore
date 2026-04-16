@@ -25,3 +25,4 @@ logs
 .agents
 skills-lock.json
 Agents.md
+.wrangler
