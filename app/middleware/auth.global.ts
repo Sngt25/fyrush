@@ -7,21 +7,32 @@ function roleHome(role: string) {
 }
 
 export default defineNuxtRouteMiddleware(async (to) => {
+  const normalizedPath = to.path !== '/' && to.path.endsWith('/')
+    ? to.path.slice(0, -1)
+    : to.path
+
+  const normalizePath = (path: string) => {
+    if (path !== '/' && path.endsWith('/'))
+      return path.slice(0, -1)
+
+    return path
+  }
+
   const redirectTo = (path: string) => {
-    if (to.path === path)
+    if (normalizedPath === normalizePath(path))
       return
 
     return navigateTo(path)
   }
 
-  if (to.path.startsWith('/api/'))
+  if (normalizedPath.startsWith('/api/'))
     return
 
-  if (to.path === '/bfp/login')
+  if (normalizedPath === '/bfp/login')
     return redirectTo('/')
 
   const { user, refreshUser } = useAuthSession()
-  const isPublicPath = PUBLIC_PATHS.has(to.path)
+  const isPublicPath = PUBLIC_PATHS.has(normalizedPath)
 
   if (isPublicPath && !user.value)
     return
@@ -38,18 +49,18 @@ export default defineNuxtRouteMiddleware(async (to) => {
   }
 
   if (!current.profileComplete) {
-    if (to.path !== '/citizen/profile')
+    if (normalizedPath !== '/citizen/profile')
       return redirectTo('/citizen/profile')
 
     return
   }
 
-  if (to.path === '/citizen/profile' || to.path === '/auth' || to.path === '/')
+  if (normalizedPath === '/citizen/profile' || normalizedPath === '/auth' || normalizedPath === '/')
     return redirectTo(roleHome(current.role))
 
-  if (to.path.startsWith('/bfp') && current.role !== USER_ROLE.BFP)
+  if (normalizedPath.startsWith('/bfp') && current.role !== USER_ROLE.BFP)
     return redirectTo('/citizen/report')
 
-  if (to.path.startsWith('/citizen/report') && current.role === USER_ROLE.BFP)
+  if (normalizedPath.startsWith('/citizen/report') && current.role === USER_ROLE.BFP)
     return redirectTo('/bfp/dashboard')
 })
