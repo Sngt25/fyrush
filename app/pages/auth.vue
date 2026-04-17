@@ -11,6 +11,10 @@ const hasGoogleClientId = computed(() => googleClientId.value.length > 0)
 
 const { googleLogin } = useAuthSession()
 
+interface GoogleAccountsIdApi {
+  disableAutoSelect?: () => void
+}
+
 function markGoogleReady() {
   isGoogleReady.value = true
 
@@ -34,21 +38,30 @@ function hasGoogleGisReady() {
   return Boolean(googleApi?.accounts?.id)
 }
 
+function disableGoogleAutoSelect() {
+  const googleApi = (window as Window & { google?: { accounts?: { id?: GoogleAccountsIdApi } } }).google
+  googleApi?.accounts?.id?.disableAutoSelect?.()
+}
+
 onMounted(() => {
   if (!hasGoogleClientId.value) {
     error.value = 'Google Sign-In is not configured. Set NUXT_PUBLIC_GOOGLE_AUTH_CLIENT_ID (or NUXT_PUBLIC_GOOGLE_CLIENT_ID) in the deployed environment.'
     return
   }
 
-  if (hasGoogleGisReady())
+  if (hasGoogleGisReady()) {
+    disableGoogleAutoSelect()
     markGoogleReady()
+  }
 
   window.addEventListener('nuxt-google-auth:ready', onGoogleReadyEvent)
 
   // Fallback polling for environments where the ready event may fire before listener attach.
   readyPollId = window.setInterval(() => {
-    if (hasGoogleGisReady())
+    if (hasGoogleGisReady()) {
+      disableGoogleAutoSelect()
       markGoogleReady()
+    }
   }, 250)
 
   readyTimeoutId = window.setTimeout(() => {
@@ -115,7 +128,7 @@ function onGoogleError(err: unknown) {
         <div class="flex justify-center">
           <ClientOnly v-if="hasGoogleClientId && isGoogleReady">
             <GoogleLoginButton
-              :options="{ theme: 'filled_blue', size: 'large', text: 'continue_with', shape: 'pill' }"
+              :options="{ theme: 'filled_blue', size: 'large', text: 'continue_with', shape: 'pill', auto_select: false }"
               @success="onGoogleSuccess"
               @error="onGoogleError"
             />

@@ -14,14 +14,17 @@ export default defineNuxtRouteMiddleware(async (to) => {
     return navigateTo('/')
 
   const { user, refreshUser } = useAuthSession()
-  // Do not block first render of public pages while session bootstrap runs.
-  if (PUBLIC_PATHS.has(to.path) && !user.value)
+  const isPublicPath = PUBLIC_PATHS.has(to.path)
+
+  if (isPublicPath && !user.value)
     return
 
-  const current = user.value ?? await refreshUser().catch(() => null)
+  let current = user.value
+  if ((isPublicPath && current) || !current)
+    current = await refreshUser().catch(() => null)
 
   if (!current) {
-    if (PUBLIC_PATHS.has(to.path))
+    if (isPublicPath)
       return
 
     return navigateTo('/')
