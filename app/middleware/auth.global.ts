@@ -7,11 +7,18 @@ function roleHome(role: string) {
 }
 
 export default defineNuxtRouteMiddleware(async (to) => {
+  const redirectTo = (path: string) => {
+    if (to.path === path)
+      return
+
+    return navigateTo(path)
+  }
+
   if (to.path.startsWith('/api/'))
     return
 
   if (to.path === '/bfp/login')
-    return navigateTo('/')
+    return redirectTo('/')
 
   const { user, refreshUser } = useAuthSession()
   const isPublicPath = PUBLIC_PATHS.has(to.path)
@@ -27,22 +34,22 @@ export default defineNuxtRouteMiddleware(async (to) => {
     if (isPublicPath)
       return
 
-    return navigateTo('/')
+    return redirectTo('/')
   }
 
   if (!current.profileComplete) {
     if (to.path !== '/citizen/profile')
-      return navigateTo('/citizen/profile')
+      return redirectTo('/citizen/profile')
 
     return
   }
 
   if (to.path === '/citizen/profile' || to.path === '/auth' || to.path === '/')
-    return navigateTo(roleHome(current.role))
+    return redirectTo(roleHome(current.role))
 
   if (to.path.startsWith('/bfp') && current.role !== USER_ROLE.BFP)
-    return navigateTo('/citizen/report')
+    return redirectTo('/citizen/report')
 
   if (to.path.startsWith('/citizen/report') && current.role === USER_ROLE.BFP)
-    return navigateTo('/bfp/dashboard')
+    return redirectTo('/bfp/dashboard')
 })
