@@ -51,7 +51,7 @@ const bottomNavItems = computed<NavigationMenuItem[]>(() => [
   {
     label: 'Profile',
     icon: 'i-lucide-user-round',
-    to: '/auth'
+    to: '/citizen/profile'
   }
 ])
 

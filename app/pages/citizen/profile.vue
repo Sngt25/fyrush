@@ -1,27 +1,52 @@
 <script setup lang="ts">
 const pending = ref(false)
-const error = ref('')
+const toast = useToast()
 
 const form = reactive({
   mobile: '',
   address: ''
 })
 
-const { completeProfile } = useAuthSession()
+const { user, completeProfile } = useAuthSession()
+
+const isUpdateMode = computed(() => Boolean(user.value?.profileComplete))
+
+watch(user, (value) => {
+  if (!value)
+    return
+
+  form.mobile = value.mobile ?? ''
+  form.address = value.address ?? ''
+}, { immediate: true })
 
 async function submit() {
   pending.value = true
-  error.value = ''
 
   try {
+    const shouldStayOnPage = isUpdateMode.value
     const result = await completeProfile({
       mobile: form.mobile,
       address: form.address
     })
 
+    if (shouldStayOnPage) {
+      toast.add({
+        title: 'Profile updated',
+        description: 'Your mobile number and address were saved.',
+        color: 'success',
+        icon: 'i-lucide-check-circle'
+      })
+      return
+    }
+
     await navigateTo(result.nextPath)
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Failed to complete profile.'
+    toast.add({
+      title: 'Unable to save profile',
+      description: err instanceof Error ? err.message : 'Failed to save profile.',
+      color: 'error',
+      icon: 'i-lucide-triangle-alert'
+    })
   } finally {
     pending.value = false
   }
@@ -34,33 +59,39 @@ async function submit() {
       <template #header>
         <div class="space-y-1">
           <h1 class="text-2xl font-black fyrush-title">
-            Complete your profile
+            {{ isUpdateMode ? 'Update profile' : 'Complete your profile' }}
           </h1>
           <p class="text-sm text-muted">
-            Mobile number and address are required before you can access protected routes.
+            {{ isUpdateMode
+              ? 'Keep your mobile number and address up to date so responders can contact you quickly.'
+              : 'Mobile number and address are required before you can access protected routes.' }}
           </p>
         </div>
       </template>
 
-      <div class="space-y-4">
+      <div class="space-y-4 bred500">
         <UFormField
           label="Mobile number"
           required
+          class="w-full"
         >
           <UInput
             v-model="form.mobile"
             placeholder="09xxxxxxxxx"
+            class="w-full"
           />
         </UFormField>
 
         <UFormField
           label="Address"
           required
+          class="w-full"
         >
           <UTextarea
             v-model="form.address"
             :rows="4"
             placeholder="Enter your full address"
+            class="w-full"
           />
         </UFormField>
 
@@ -70,15 +101,17 @@ async function submit() {
           :loading="pending"
           @click="submit"
         >
-          Save and continue
+          {{ isUpdateMode ? 'Save changes' : 'Save and continue' }}
         </UButton>
 
-        <p
-          v-if="error"
-          class="text-sm text-error"
+        <UButton
+          v-if="isUpdateMode"
+          block
+          variant="ghost"
+          to="/citizen/report"
         >
-          {{ error }}
-        </p>
+          Back to report
+        </UButton>
       </div>
     </UCard>
   </UContainer>
