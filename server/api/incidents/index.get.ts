@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm'
 import { db, schema } from 'hub:db'
-import { USER_ROLE } from '#shared/fyrush'
+import { INCIDENT_STATUS, USER_ROLE } from '#shared/fyrush'
 import { requireCompleteUser } from '../../utils/auth'
 import { listIncidentFeed } from '../../utils/incidents'
 
@@ -13,14 +13,15 @@ export default defineEventHandler(async (event) => {
       .select({
         incidentId: schema.incidentReports.incidentId,
         userId: schema.incidentReports.userId,
-        userName: schema.users.name
+        userName: schema.users.name,
+        userRole: schema.users.role
       })
       .from(schema.incidentReports)
       .innerJoin(schema.users, eq(schema.incidentReports.userId, schema.users.id))
 
-    const grouped = reportsByIncident.reduce<Record<string, Array<{ userId: string, userName: string }>>>((acc, row) => {
+    const grouped = reportsByIncident.reduce<Record<string, Array<{ userId: string, userName: string, userRole: string }>>>((acc, row) => {
       acc[row.incidentId] ||= []
-      acc[row.incidentId]!.push({ userId: row.userId, userName: row.userName })
+      acc[row.incidentId]!.push({ userId: row.userId, userName: row.userName, userRole: row.userRole })
       return acc
     }, {})
 
@@ -38,7 +39,10 @@ export default defineEventHandler(async (event) => {
     .where(eq(schema.incidentReports.userId, user.id))
 
   const mineSet = new Set(mine.map(row => row.incidentId))
-  const filtered = incidents.filter(item => mineSet.has(item.id) || item.status !== 'completed')
+  const filtered = incidents.filter(item =>
+    mineSet.has(item.id)
+    || (item.status !== INCIDENT_STATUS.COMPLETED && item.status !== INCIDENT_STATUS.INVALIDATED)
+  )
 
   return { ok: true, incidents: filtered }
 })

@@ -24,7 +24,20 @@ const activeTab = computed<'dashboard' | 'history'>(() =>
 const setLocationPoint = computed<[number, number]>(() => [BARANGAY_KALIPAY_CENTER.lng, BARANGAY_KALIPAY_CENTER.lat])
 const latestIncident = computed(() => incidents.value[0] || null)
 const dashboardHistory = computed(() => history.value.slice(0, 3))
-const alreadyReported = computed(() => history.value.some(item => item.status !== INCIDENT_STATUS.COMPLETED))
+const alreadyReported = computed(() =>
+  history.value.some(item => item.status !== INCIDENT_STATUS.COMPLETED && item.status !== INCIDENT_STATUS.INVALIDATED)
+)
+
+const bfpSharedPoint = computed<[number, number] | null>(() => {
+  if (!latestIncident.value || !payload.value?.responder)
+    return null
+
+  const responder = payload.value.responder.find(item => item.incidentId === latestIncident.value?.id)
+  if (!responder)
+    return null
+
+  return [responder.longitude, responder.latitude]
+})
 
 const locationLabel = computed(() =>
   useSetLocation.value ? 'Location: Barangay Kalipay' : 'Location: Manual map pin'
@@ -239,6 +252,7 @@ async function signOut() {
       v-model:manual-marker="manualMarker"
       :use-set-location="useSetLocation"
       :set-location-point="setLocationPoint"
+      :bfp-shared-point="bfpSharedPoint"
       @choose-manual-location="chooseManualLocation"
       @confirm-set-location="confirmSetLocation"
       @confirm-manual-location="confirmManualLocation"

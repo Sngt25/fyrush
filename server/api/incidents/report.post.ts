@@ -30,7 +30,8 @@ export default defineEventHandler(async (event) => {
     latitude,
     longitude,
     address,
-    source: useRegistered ? 'registered' : 'manual'
+    source: useRegistered ? 'registered' : 'manual',
+    autoValidate: user.role === USER_ROLE.POINT_PERSON
   })
 
   return {

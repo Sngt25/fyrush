@@ -6,6 +6,7 @@ export const BARANGAY_KALIPAY_CENTER = {
 export const INCIDENT_STATUS = {
   NEW: 'new',
   VALIDATED: 'validated',
+  INVALIDATED: 'invalidated',
   ON_THE_WAY: 'on_the_way',
   COMPLETED: 'completed'
 } as const

@@ -30,6 +30,7 @@ export async function createIncidentReport(input: {
   longitude: number
   address: string
   source: 'registered' | 'manual'
+  autoValidate?: boolean
 }) {
   const now = Date.now()
 
@@ -70,10 +71,15 @@ export async function createIncidentReport(input: {
       alreadyReported = true
 
     if (!alreadyReported) {
+      const nextStatus = input.autoValidate && nearbyIncident.status !== INCIDENT_STATUS.COMPLETED
+        ? INCIDENT_STATUS.VALIDATED
+        : nearbyIncident.status
+
       await db
         .update(schema.incidents)
         .set({
           reportCount: nearbyIncident.reportCount + 1,
+          status: nextStatus,
           updatedAt: now
         })
         .where(eq(schema.incidents.id, incidentId))
@@ -86,7 +92,7 @@ export async function createIncidentReport(input: {
       latitude: input.latitude,
       longitude: input.longitude,
       address: input.address,
-      status: INCIDENT_STATUS.NEW,
+      status: input.autoValidate ? INCIDENT_STATUS.VALIDATED : INCIDENT_STATUS.NEW,
       reportCount: 1,
       createdByUserId: input.userId,
       createdAt: now,

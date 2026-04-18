@@ -55,7 +55,6 @@ export default defineEventHandler(async (event) => {
   try {
     const email = normalizeEmail(String(payload.email))
     const googleId = String(payload.sub)
-    const role = pickRole(email, config.bfpEmail)
     const now = Date.now()
 
     const row = await db.query.users.findFirst({
@@ -63,6 +62,9 @@ export default defineEventHandler(async (event) => {
     })
 
     const profileComplete = Boolean(row?.mobile?.trim() && row?.address?.trim())
+    const role = row?.role === USER_ROLE.POINT_PERSON
+      ? USER_ROLE.POINT_PERSON
+      : pickRole(email, config.bfpEmail)
 
     if (!row) {
       const id = globalThis.crypto.randomUUID()
@@ -92,7 +94,7 @@ export default defineEventHandler(async (event) => {
           email,
           googleId,
           authProvider: 'google',
-          name: row.name || String(payload.name || email.split('@')[0] || 'User'),
+          name: String(payload.name || row.name || email.split('@')[0] || 'User'),
           profileComplete: profileComplete ? 1 : 0
         })
         .where(and(eq(schema.users.id, row.id)))

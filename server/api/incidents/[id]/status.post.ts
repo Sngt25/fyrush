@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
   if (!incidentId)
     throw createError({ statusCode: 400, statusMessage: 'Incident id is required.' })
 
-  const body = await readBody<{ action?: 'validate' | 'start_timer' | 'dispatch' | 'complete' }>(event)
+  const body = await readBody<{ action?: 'validate' | 'invalidate' | 'start_timer' | 'dispatch' | 'complete' }>(event)
   if (!body.action)
     throw createError({ statusCode: 400, statusMessage: 'Action is required.' })
 
@@ -24,15 +24,21 @@ export default defineEventHandler(async (event) => {
     await db.update(schema.incidents).set({ status: INCIDENT_STATUS.VALIDATED, updatedAt: now }).where(eq(schema.incidents.id, incidentId))
   }
 
+  if (body.action === 'invalidate') {
+    await db.update(schema.incidents).set({ status: INCIDENT_STATUS.INVALIDATED, updatedAt: now }).where(eq(schema.incidents.id, incidentId))
+  }
+
   if (body.action === 'start_timer') {
     await db.update(schema.incidents).set({ timerStartedAt: now, updatedAt: now }).where(eq(schema.incidents.id, incidentId))
   }
 
   if (body.action === 'dispatch') {
-    if (!incident.timerStartedAt)
-      throw createError({ statusCode: 409, statusMessage: 'Response timer must start before dispatch.' })
-
-    await db.update(schema.incidents).set({ status: INCIDENT_STATUS.ON_THE_WAY, dispatchedAt: now, updatedAt: now }).where(eq(schema.incidents.id, incidentId))
+    await db.update(schema.incidents).set({
+      status: INCIDENT_STATUS.ON_THE_WAY,
+      timerStartedAt: incident.timerStartedAt ?? now,
+      dispatchedAt: now,
+      updatedAt: now
+    }).where(eq(schema.incidents.id, incidentId))
   }
 
   if (body.action === 'complete') {

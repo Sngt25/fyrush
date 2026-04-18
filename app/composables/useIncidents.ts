@@ -1,7 +1,7 @@
 import type { IncidentFeedItem } from '#shared/fyrush'
 
 interface IncidentResponse extends IncidentFeedItem {
-  reportingUsers?: Array<{ userId: string, userName: string }>
+  reportingUsers?: Array<{ userId: string, userName: string, userRole?: string }>
 }
 
 export function useIncidents() {
@@ -30,7 +30,7 @@ export function useIncidents() {
     return response
   }
 
-  async function updateIncidentStatus(incidentId: string, action: 'validate' | 'start_timer' | 'dispatch' | 'complete') {
+  async function updateIncidentStatus(incidentId: string, action: 'validate' | 'invalidate' | 'start_timer' | 'dispatch' | 'complete') {
     await $fetch(`/api/incidents/${incidentId}/status`, {
       method: 'POST',
       body: { action }
