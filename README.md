@@ -42,6 +42,14 @@ NUXT_PUBLIC_GOOGLE_AUTH_CLIENT_ID=your-client-id.apps.googleusercontent.com
 # Backward-compatible fallback also supported:
 # NUXT_PUBLIC_GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
 BFP_EMAIL=firestation@example.com
+
+# Development DB switch for NuxtHub:
+# true (default) -> uses .data/db/sqlite.db while running nuxt dev
+# false -> disables local DB override in development
+NUXT_HUB_USE_LOCAL_DB=true
+
+# Optional local DB override:
+# NUXT_HUB_LOCAL_DB_URL=file:.data/db/sqlite.db
 ```
 
 ## Development Server
@@ -58,6 +66,13 @@ Build the application for production:
 
 ```bash
 pnpm build
+```
+
+Apply production D1 migrations and deploy:
+
+```bash
+pnpm run db:migrate:remote
+pnpm run deploy:prod
 ```
 
 Locally preview production build:

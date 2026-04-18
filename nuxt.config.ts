@@ -1,5 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 const resolvedGoogleClientId = process.env.NUXT_PUBLIC_GOOGLE_AUTH_CLIENT_ID || process.env.NUXT_PUBLIC_GOOGLE_CLIENT_ID || ''
+const useLocalHubDb = process.env.NODE_ENV !== 'production' && process.env.NUXT_HUB_USE_LOCAL_DB !== 'false'
 
 export default defineNuxtConfig({
 
@@ -36,7 +37,15 @@ export default defineNuxtConfig({
   },
 
   hub: {
-    db: 'sqlite',
+    db: useLocalHubDb
+      ? {
+          dialect: 'sqlite',
+          driver: 'libsql',
+          connection: {
+            url: process.env.NUXT_HUB_LOCAL_DB_URL || 'file:.data/db/sqlite.db'
+          }
+        }
+      : 'sqlite',
     kv: true
   },
 

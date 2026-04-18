@@ -8,6 +8,8 @@
     "build": "nuxt build",
     "dev": "nuxt dev",
     "preview": "nuxt preview",
+    "db:migrate:remote": "wrangler d1 migrations apply DB --remote --config .output/server/wrangler.json",
+    "deploy:prod": "pnpm run db:migrate:remote && wrangler deploy",
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
     "typecheck": "nuxt typecheck"
