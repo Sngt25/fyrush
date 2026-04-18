@@ -13,6 +13,7 @@ const emit = defineEmits<{
   'update:manualMarker': [value: [number, number]]
   'chooseManualLocation': []
   'confirmSetLocation': []
+  'confirmManualLocation': []
 }>()
 
 const locationPromptModel = computed({
@@ -29,6 +30,29 @@ const manualMarkerModel = computed({
   get: () => props.manualMarker,
   set: (value: [number, number]) => emit('update:manualMarker', value)
 })
+
+const draftManualMarker = ref<[number, number]>([props.manualMarker[0], props.manualMarker[1]])
+const mapFullscreen = ref(false)
+
+watch(() => props.mapDialogOpen, (isOpen) => {
+  if (isOpen) {
+    draftManualMarker.value = [props.manualMarker[0], props.manualMarker[1]]
+    return
+  }
+
+  mapFullscreen.value = false
+})
+
+function usePinnedLocation() {
+  manualMarkerModel.value = [draftManualMarker.value[0], draftManualMarker.value[1]]
+  emit('confirmManualLocation')
+  mapDialogModel.value = false
+}
+
+function useSetLocationFromMap() {
+  emit('confirmSetLocation')
+  mapDialogModel.value = false
+}
 </script>
 
 <template>
@@ -67,16 +91,29 @@ const manualMarkerModel = computed({
   <UModal
     v-model:open="mapDialogModel"
     title="Choose Fire Location on Map"
+    :fullscreen="mapFullscreen"
     :ui="{ body: 'space-y-3' }"
   >
     <template #body>
-      <p class="text-xs text-muted">
-        Tap on the map to set the exact fire point.
-      </p>
+      <div class="flex items-center justify-between gap-2">
+        <p class="text-xs text-muted">
+          Tap on the map to set the exact fire point.
+        </p>
+        <UButton
+          color="neutral"
+          variant="outline"
+          size="xs"
+          :icon="mapFullscreen ? 'i-lucide-minimize-2' : 'i-lucide-maximize-2'"
+          @click="mapFullscreen = !mapFullscreen"
+        >
+          {{ mapFullscreen ? 'Exit fullscreen' : 'Fullscreen' }}
+        </UButton>
+      </div>
       <CitizenReportMap
-        v-model:manual-marker="manualMarkerModel"
+        v-model:manual-marker="draftManualMarker"
         :user-has-registered-point="true"
         :registered-point="setLocationPoint"
+        :map-height="mapFullscreen ? 'calc(100dvh - 12rem)' : '24rem'"
       />
     </template>
 
@@ -86,14 +123,14 @@ const manualMarkerModel = computed({
           color="neutral"
           variant="outline"
           block
-          @click="mapDialogModel = false"
+          @click="useSetLocationFromMap"
         >
-          Cancel
+          Use Set Location
         </UButton>
         <UButton
           color="warning"
           block
-          @click="mapDialogModel = false"
+          @click="usePinnedLocation"
         >
           Use this pin
         </UButton>

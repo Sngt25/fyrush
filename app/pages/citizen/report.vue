@@ -87,21 +87,27 @@ function syncHistoryStatuses(nextIncidents: IncidentFeedItem[]) {
 
 function confirmSetLocation() {
   useSetLocation.value = true
+  manualMarker.value = [setLocationPoint.value[0], setLocationPoint.value[1]]
   locationPromptOpen.value = false
   mapDialogOpen.value = false
   statusMessage.value = 'Set location confirmed. Tap REPORT FIRE three times quickly.'
 }
 
 function chooseManualLocation() {
-  useSetLocation.value = false
   locationPromptOpen.value = false
   mapDialogOpen.value = true
-  statusMessage.value = 'Tap on the map to pin the exact fire location, then triple tap REPORT FIRE.'
+  statusMessage.value = 'Tap on the map, then confirm with Use this pin before reporting.'
 }
 
 function openMapDialog() {
-  useSetLocation.value = false
   mapDialogOpen.value = true
+}
+
+function confirmManualLocation() {
+  useSetLocation.value = false
+  locationPromptOpen.value = false
+  mapDialogOpen.value = false
+  statusMessage.value = 'Manual pin confirmed. Tap REPORT FIRE three times quickly.'
 }
 
 async function selectTab(tab: 'dashboard' | 'history') {
@@ -235,6 +241,7 @@ async function signOut() {
       :set-location-point="setLocationPoint"
       @choose-manual-location="chooseManualLocation"
       @confirm-set-location="confirmSetLocation"
+      @confirm-manual-location="confirmManualLocation"
     />
   </div>
 </template>
