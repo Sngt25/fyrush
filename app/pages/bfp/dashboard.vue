@@ -5,7 +5,7 @@ const { user, logout } = useAuthSession()
 const { incidents, fetchIncidents, updateIncidentStatus, updateResponderLocation, assignPointPerson } = useIncidents()
 const { payload, connect, disconnect } = useIncidentSocket()
 const { rememberIncidents, notifyNewIncidents } = useIncidentPwaNotifications()
-const { toMessage } = useError()
+const { toMessage } = useAppError()
 const route = useRoute()
 const toast = useToast()
 

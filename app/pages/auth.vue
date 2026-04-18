@@ -2,7 +2,7 @@
 const config = useRuntimeConfig()
 const pending = ref(false)
 const error = ref('')
-const { toMessage } = useError()
+const { toMessage } = useAppError()
 const isGoogleReady = ref(false)
 let readyTimeoutId: number | null = null
 let readyPollId: number | null = null

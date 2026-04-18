@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const pending = ref(false)
 const toast = useToast()
-const { toMessage } = useError()
+const { toMessage } = useAppError()
 
 const form = reactive({
   mobile: '',

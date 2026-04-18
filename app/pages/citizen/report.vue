@@ -4,7 +4,7 @@ import { BARANGAY_KALIPAY_CENTER, INCIDENT_STATUS, type IncidentFeedItem } from 
 
 const route = useRoute()
 const toast = useToast()
-const { toMessage } = useError()
+const { toMessage } = useAppError()
 const { logout } = useAuthSession()
 const { incidents, history, fetchIncidents, fetchHistory, reportIncident } = useIncidents()
 const { payload, connect, disconnect } = useIncidentSocket()
