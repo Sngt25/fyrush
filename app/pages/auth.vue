@@ -2,6 +2,7 @@
 const config = useRuntimeConfig()
 const pending = ref(false)
 const error = ref('')
+const { toMessage } = useError()
 const isGoogleReady = ref(false)
 let readyTimeoutId: number | null = null
 let readyPollId: number | null = null
@@ -94,14 +95,14 @@ async function onGoogleSuccess(payload: { credential?: string }) {
     const result = await googleLogin(payload.credential)
     await navigateTo(result.nextPath)
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Unable to log in with Google.'
+    error.value = toMessage(err, 'Unable to log in with Google.')
   } finally {
     pending.value = false
   }
 }
 
 function onGoogleError(err: unknown) {
-  error.value = err instanceof Error ? err.message : 'Google sign-in failed.'
+  error.value = toMessage(err, 'Google sign-in failed.')
 }
 </script>
 

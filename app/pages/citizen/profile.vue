@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const pending = ref(false)
 const toast = useToast()
+const { toMessage } = useError()
 
 const form = reactive({
   mobile: '',
@@ -43,7 +44,7 @@ async function submit() {
   } catch (err) {
     toast.add({
       title: 'Unable to save profile',
-      description: err instanceof Error ? err.message : 'Failed to save profile.',
+      description: toMessage(err, 'Failed to save profile.'),
       color: 'error',
       icon: 'i-lucide-triangle-alert'
     })

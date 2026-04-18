@@ -4,6 +4,7 @@ import { BARANGAY_KALIPAY_CENTER, INCIDENT_STATUS, type IncidentFeedItem } from 
 
 const route = useRoute()
 const toast = useToast()
+const { toMessage } = useError()
 const { logout } = useAuthSession()
 const { incidents, history, fetchIncidents, fetchHistory, reportIncident } = useIncidents()
 const { payload, connect, disconnect } = useIncidentSocket()
@@ -152,7 +153,7 @@ async function submitReport() {
     statusMessage.value = 'Fire report submitted successfully.'
     await fetchHistory()
   } catch (err) {
-    statusMessage.value = err instanceof Error ? err.message : 'Report submission failed.'
+    statusMessage.value = toMessage(err, 'Report submission failed.')
   } finally {
     pending.value = false
   }

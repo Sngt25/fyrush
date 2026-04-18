@@ -3,6 +3,7 @@ const { user, logout } = useAuthSession()
 const { incidents, fetchIncidents, updateIncidentStatus, updateResponderLocation, assignPointPerson } = useIncidents()
 const { payload, connect, disconnect } = useIncidentSocket()
 const { rememberIncidents, notifyNewIncidents } = useIncidentPwaNotifications()
+const { toMessage } = useError()
 
 const actionError = ref('')
 
@@ -28,7 +29,7 @@ async function runAction(incidentId: string, action: 'validate' | 'start_timer' 
   try {
     await updateIncidentStatus(incidentId, action)
   } catch (err) {
-    actionError.value = err instanceof Error ? err.message : 'Action failed.'
+    actionError.value = toMessage(err, 'Action failed.')
   }
 }
 
@@ -54,7 +55,7 @@ async function quickAssign(incidentId: string, userId?: string) {
   try {
     await assignPointPerson(incidentId, userId)
   } catch (err) {
-    actionError.value = err instanceof Error ? err.message : 'Assign failed.'
+    actionError.value = toMessage(err, 'Assign failed.')
   }
 }
 
