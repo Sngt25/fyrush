@@ -71,7 +71,7 @@ watch(() => route.path, () => {
           />
           <NuxtLink
             to="/bfp/dashboard"
-            class="text-xl font-black fyrush-title"
+            class="text-xl font-black text-(--fyrush-ink) dark:text-(--fyrush-paper)"
           >
             Fyrush
           </NuxtLink>

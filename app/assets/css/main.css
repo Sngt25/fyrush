@@ -16,12 +16,6 @@
   color: var(--fyrush-ink);
 }
 
-@media (prefers-color-scheme: dark) {
-  .fyrush-title {
-    color: var(--fyrush-paper);
-  }
-}
-
 body {
   background:
     radial-gradient(circle at 20% 4%, rgb(247 179 0 / 18%) 0, transparent 26%),
