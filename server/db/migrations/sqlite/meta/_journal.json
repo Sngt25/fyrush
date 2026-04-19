@@ -8,6 +8,13 @@
       "when": 1776318438420,
       "tag": "0000_serious_madelyne_pryor",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1776575599940,
+      "tag": "0001_tiny_shadowcat",
+      "breakpoints": true
     }
   ]
 }

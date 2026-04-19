@@ -46,6 +46,8 @@ export interface IncidentFeedItem {
   createdByUserId: string
   createdAt: number
   updatedAt: number
+  validatedAt: number | null
+  invalidatedAt: number | null
   timerStartedAt: number | null
   dispatchedAt: number | null
   closedAt: number | null

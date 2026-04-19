@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { BARANGAY_KALIPAY_CENTER, INCIDENT_STATUS } from '#shared/fyrush'
+import { INCIDENT_STATUS } from '#shared/fyrush'
 
 definePageMeta({
   layout: 'bfp'
@@ -7,55 +7,19 @@ definePageMeta({
 
 const { incidents, fetchIncidents, updateIncidentStatus, updateResponderLocation } = useIncidents()
 const { payload, connect, disconnect } = useIncidentSocket()
-const { rememberIncidents, notifyNewIncidents } = useIncidentPwaNotifications()
+const { notifyNewIncidents } = useIncidentPwaNotifications()
 const { toMessage } = useAppError()
 
 const actionError = ref('')
-const summary = ref<{
-  totalRegisteredUsers: number
-  activeReports: number
-  totalPointPersons: number
-  registeredPointPersons: number
-  averageResponseMs: number | null
-}>({
-  totalRegisteredUsers: 0,
-  activeReports: 0,
-  totalPointPersons: 0,
-  registeredPointPersons: 0,
-  averageResponseMs: null
-})
-
+const logFilter = ref<'active' | 'history'>('active')
 const positionWatches = new Map<string, number>()
 
 const activeIncidents = computed(() => incidents.value.filter(item => item.status !== INCIDENT_STATUS.COMPLETED && item.status !== INCIDENT_STATUS.INVALIDATED))
-
-const activeIncidentMarkers = computed(() => activeIncidents.value.map(item => ({
-  id: item.id,
-  latitude: item.latitude,
-  longitude: item.longitude,
-  label: item.address,
-  kind: 'incident' as const
-})))
-
-const responderMarkers = computed(() => {
-  const activeIds = new Set(activeIncidents.value.map(item => item.id))
-
-  return (payload.value?.responder || [])
-    .filter(item => activeIds.has(item.incidentId))
-    .map(item => ({
-      id: `responder-${item.incidentId}`,
-      latitude: item.latitude,
-      longitude: item.longitude,
-      label: 'BFP Responder',
-      kind: 'responder' as const
-    }))
-})
-
-const overallMapMarkers = computed(() => [...activeIncidentMarkers.value, ...responderMarkers.value])
+const historyIncidents = computed(() => incidents.value.filter(item => item.status === INCIDENT_STATUS.COMPLETED || item.status === INCIDENT_STATUS.INVALIDATED))
+const logIncidents = computed(() => logFilter.value === 'active' ? activeIncidents.value : historyIncidents.value)
 
 onMounted(async () => {
-  await Promise.all([fetchIncidents(), fetchSummary()])
-  rememberIncidents(incidents.value)
+  await fetchIncidents()
   connect()
 })
 
@@ -71,21 +35,6 @@ watch(payload, async (value) => {
   incidents.value = value.incidents as typeof incidents.value
   await notifyNewIncidents(value.incidents as typeof incidents.value)
 })
-
-function formatElapsedMs(ms: number | null) {
-  if (!ms || ms < 0)
-    return 'N/A'
-
-  const totalSeconds = Math.floor(ms / 1000)
-  const minutes = Math.floor(totalSeconds / 60)
-  const seconds = totalSeconds % 60
-  return `${minutes}m ${seconds}s`
-}
-
-async function fetchSummary() {
-  const response = await $fetch<{ ok: boolean, summary: typeof summary.value }>('/api/bfp/summary')
-  summary.value = response.summary
-}
 
 function stopLiveShare(incidentId: string) {
   if (!import.meta.client)
@@ -163,8 +112,6 @@ async function runAction(incidentId: string, action: 'validate' | 'invalidate' |
 
     if (action === 'complete' || action === 'invalidate')
       stopLiveShare(incidentId)
-
-    await fetchSummary()
   } catch (err) {
     actionError.value = toMessage(err, 'Action failed.')
   }
@@ -175,7 +122,7 @@ async function runAction(incidentId: string, action: 'validate' | 'invalidate' |
   <div class="space-y-4">
     <div class="flex flex-wrap items-center justify-between gap-3">
       <h1 class="text-3xl font-black fyrush-title">
-        Dashboard
+        Logs
       </h1>
     </div>
 
@@ -186,78 +133,38 @@ async function runAction(incidentId: string, action: 'validate' | 'invalidate' |
       {{ actionError }}
     </p>
 
-    <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-      <UCard class="fyrush-panel">
-        <p class="text-xs text-muted">
-          Total Registered Users
-        </p>
-        <p class="mt-2 text-2xl font-black">
-          {{ summary.totalRegisteredUsers }}
-        </p>
-      </UCard>
-
-      <UCard class="fyrush-panel">
-        <p class="text-xs text-muted">
-          Avg Response (Timer to Complete)
-        </p>
-        <p class="mt-2 text-2xl font-black">
-          {{ formatElapsedMs(summary.averageResponseMs) }}
-        </p>
-      </UCard>
-
-      <UCard class="fyrush-panel">
-        <p class="text-xs text-muted">
-          Active Fire Reports
-        </p>
-        <p class="mt-2 text-2xl font-black">
-          {{ summary.activeReports }}
-        </p>
-      </UCard>
-
-      <UCard class="fyrush-panel">
-        <p class="text-xs text-muted">
-          Registered Point Persons
-        </p>
-        <p class="mt-2 text-2xl font-black">
-          {{ summary.registeredPointPersons }} / {{ summary.totalPointPersons }}
-        </p>
-      </UCard>
+    <div class="flex gap-2">
+      <UButton
+        :color="logFilter === 'active' ? 'error' : 'neutral'"
+        :variant="logFilter === 'active' ? 'solid' : 'outline'"
+        @click="logFilter = 'active'"
+      >
+        Active Logs
+      </UButton>
+      <UButton
+        :color="logFilter === 'history' ? 'error' : 'neutral'"
+        :variant="logFilter === 'history' ? 'solid' : 'outline'"
+        @click="logFilter = 'history'"
+      >
+        History
+      </UButton>
     </div>
-
-    <UCard class="fyrush-panel">
-      <template #header>
-        <div class="flex items-center justify-between gap-2">
-          <p class="font-bold text-lg">
-            Active Incidents Map
-          </p>
-          <p class="text-xs text-muted">
-            Centered near barangay set location
-          </p>
-        </div>
-      </template>
-
-      <BfpIncidentMap
-        :center="[BARANGAY_KALIPAY_CENTER.lat, BARANGAY_KALIPAY_CENTER.lng]"
-        :zoom="14"
-        :markers="overallMapMarkers"
-        map-height="24rem"
-      />
-    </UCard>
 
     <div class="grid gap-4 lg:grid-cols-2">
       <BfpIncidentCard
-        v-for="incident in activeIncidents"
+        v-for="incident in logIncidents"
         :key="incident.id"
         :incident="incident"
+        show-reporting-users
         @action="runAction"
       />
 
       <UCard
-        v-if="activeIncidents.length === 0"
+        v-if="logIncidents.length === 0"
         class="fyrush-panel lg:col-span-2"
       >
         <p class="text-sm text-muted">
-          No active fire reports right now.
+          No log entries for this filter yet.
         </p>
       </UCard>
     </div>

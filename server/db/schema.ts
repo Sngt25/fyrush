@@ -28,6 +28,8 @@ export const incidents = sqliteTable('incidents', {
   createdByUserId: text('created_by_user_id').notNull(),
   createdAt: integer('created_at').notNull(),
   updatedAt: integer('updated_at').notNull(),
+  validatedAt: integer('validated_at'),
+  invalidatedAt: integer('invalidated_at'),
   timerStartedAt: integer('timer_started_at'),
   dispatchedAt: integer('dispatched_at'),
   closedAt: integer('closed_at')

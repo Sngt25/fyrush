@@ -31,6 +31,9 @@ export default defineNuxtRouteMiddleware(async (to) => {
   if (normalizedPath === '/bfp/login')
     return redirectTo('/')
 
+  if (normalizedPath === '/bfp')
+    return redirectTo('/bfp/dashboard')
+
   const { user, refreshUser } = useAuthSession()
   const isPublicPath = PUBLIC_PATHS.has(normalizedPath)
 

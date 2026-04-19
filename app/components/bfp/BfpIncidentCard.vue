@@ -1,0 +1,210 @@
+<script setup lang="ts">
+import { INCIDENT_STATUS } from '#shared/fyrush'
+
+const props = withDefaults(defineProps<{
+  incident: {
+    id: string
+    address: string
+    status: string
+    reportCount: number
+    createdAt: number
+    latitude: number
+    longitude: number
+    validatedAt: number | null
+    dispatchedAt: number | null
+    closedAt: number | null
+    invalidatedAt: number | null
+    timerStartedAt: number | null
+    reportingUsers?: Array<{ userId: string, userName: string }>
+    hasManualPinnedReport?: boolean
+    manualPinnedReportCount?: number
+  }
+  showReportingUsers?: boolean
+}>(), {
+  showReportingUsers: false
+})
+
+const emit = defineEmits<{
+  action: [incidentId: string, action: 'validate' | 'invalidate' | 'dispatch' | 'complete']
+}>()
+
+const mapOpen = ref(false)
+
+const timelineItems = computed(() => {
+  const items: Array<{ label: string, at: number | null }> = [
+    { label: 'Reported', at: props.incident.createdAt },
+    { label: 'Validated', at: props.incident.validatedAt },
+    { label: 'Responded', at: props.incident.dispatchedAt },
+    { label: 'Completed', at: props.incident.closedAt }
+  ]
+
+  if (props.incident.invalidatedAt)
+    items.push({ label: 'Invalidated', at: props.incident.invalidatedAt })
+
+  return items
+})
+
+function statusBadgeColor(status: string) {
+  if (status === INCIDENT_STATUS.NEW)
+    return 'warning'
+  if (status === INCIDENT_STATUS.VALIDATED)
+    return 'info'
+  if (status === INCIDENT_STATUS.ON_THE_WAY)
+    return 'error'
+  if (status === INCIDENT_STATUS.INVALIDATED)
+    return 'neutral'
+  return 'success'
+}
+
+function formatElapsedMs(ms: number | null) {
+  if (!ms || ms < 0)
+    return 'N/A'
+
+  const totalSeconds = Math.floor(ms / 1000)
+  const minutes = Math.floor(totalSeconds / 60)
+  const seconds = totalSeconds % 60
+  return `${minutes}m ${seconds}s`
+}
+
+function incidentPerformance(incident: { timerStartedAt: number | null, closedAt: number | null }) {
+  if (!incident.timerStartedAt || !incident.closedAt)
+    return null
+
+  return incident.closedAt - incident.timerStartedAt
+}
+
+function formatTimestamp(value: number | null) {
+  if (!value)
+    return 'Pending'
+
+  return new Date(value).toLocaleString()
+}
+</script>
+
+<template>
+  <UCard class="fyrush-panel">
+    <template #header>
+      <div class="flex items-center justify-between gap-2">
+        <p class="font-bold">
+          {{ incident.address }}
+        </p>
+        <UBadge
+          :color="statusBadgeColor(incident.status)"
+          variant="soft"
+        >
+          {{ incident.status }}
+        </UBadge>
+      </div>
+    </template>
+
+    <div class="space-y-3 text-sm">
+      <div class="grid gap-2 sm:grid-cols-2">
+        <p>Reports: {{ incident.reportCount }}</p>
+        <p>Created: {{ new Date(incident.createdAt).toLocaleString() }}</p>
+        <p>Performance: {{ formatElapsedMs(incidentPerformance(incident)) }}</p>
+        <p v-if="incident.hasManualPinnedReport">
+          Manual pin: {{ incident.latitude.toFixed(5) }}, {{ incident.longitude.toFixed(5) }}
+        </p>
+      </div>
+
+      <div class="rounded-xl border border-default bg-muted/40 p-3 space-y-1">
+        <p class="text-xs font-semibold text-muted uppercase tracking-wide">
+          Status Timeline
+        </p>
+        <div class="grid gap-1">
+          <p
+            v-for="item in timelineItems"
+            :key="item.label"
+            class="text-xs"
+          >
+            <span class="font-semibold">{{ item.label }}:</span>
+            {{ formatTimestamp(item.at) }}
+          </p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2">
+        <UButton
+          size="sm"
+          :disabled="incident.status !== INCIDENT_STATUS.NEW"
+          @click="emit('action', incident.id, 'validate')"
+        >
+          Validate
+        </UButton>
+        <UButton
+          size="sm"
+          color="neutral"
+          :disabled="incident.status === INCIDENT_STATUS.COMPLETED || incident.status === INCIDENT_STATUS.INVALIDATED"
+          @click="emit('action', incident.id, 'invalidate')"
+        >
+          Invalidate
+        </UButton>
+        <UButton
+          size="sm"
+          color="error"
+          :disabled="incident.status !== INCIDENT_STATUS.VALIDATED"
+          @click="emit('action', incident.id, 'dispatch')"
+        >
+          Respond
+        </UButton>
+        <UButton
+          size="sm"
+          color="success"
+          :disabled="incident.status !== INCIDENT_STATUS.ON_THE_WAY"
+          @click="emit('action', incident.id, 'complete')"
+        >
+          Complete
+        </UButton>
+      </div>
+
+      <UButton
+        size="sm"
+        color="neutral"
+        variant="outline"
+        icon="i-lucide-map"
+        @click="mapOpen = true"
+      >
+        View Map
+      </UButton>
+
+      <div
+        v-if="showReportingUsers && incident.reportingUsers?.length"
+        class="pt-1"
+      >
+        <p class="font-semibold text-xs text-muted">
+          Reporting Users
+        </p>
+        <ul class="text-xs list-disc pl-4">
+          <li
+            v-for="reporter in incident.reportingUsers"
+            :key="reporter.userId + incident.id"
+          >
+            {{ reporter.userName }}
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <UModal
+      v-model:open="mapOpen"
+      title="Incident Map"
+    >
+      <template #body>
+        <BfpIncidentMap
+          :center="[incident.latitude, incident.longitude]"
+          :zoom="17"
+          :markers="[
+            {
+              id: incident.id,
+              latitude: incident.latitude,
+              longitude: incident.longitude,
+              label: incident.address,
+              kind: 'incident'
+            }
+          ]"
+          map-height="22rem"
+        />
+      </template>
+    </UModal>
+  </UCard>
+</template>

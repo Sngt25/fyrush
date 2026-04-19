@@ -14,7 +14,8 @@ export default defineEventHandler(async (event) => {
         incidentId: schema.incidentReports.incidentId,
         userId: schema.incidentReports.userId,
         userName: schema.users.name,
-        userRole: schema.users.role
+        userRole: schema.users.role,
+        source: schema.incidentReports.source
       })
       .from(schema.incidentReports)
       .innerJoin(schema.users, eq(schema.incidentReports.userId, schema.users.id))
@@ -25,9 +26,19 @@ export default defineEventHandler(async (event) => {
       return acc
     }, {})
 
+    const manualCounts = reportsByIncident.reduce<Record<string, number>>((acc, row) => {
+      if (row.source !== 'manual')
+        return acc
+
+      acc[row.incidentId] = (acc[row.incidentId] || 0) + 1
+      return acc
+    }, {})
+
     const enriched = incidents.map(item => ({
       ...item,
-      reportingUsers: grouped[item.id] || []
+      reportingUsers: grouped[item.id] || [],
+      hasManualPinnedReport: Boolean(manualCounts[item.id]),
+      manualPinnedReportCount: manualCounts[item.id] || 0
     }))
 
     return { ok: true, incidents: enriched }

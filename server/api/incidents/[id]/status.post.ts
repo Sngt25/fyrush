@@ -21,11 +21,20 @@ export default defineEventHandler(async (event) => {
   const now = Date.now()
 
   if (body.action === 'validate') {
-    await db.update(schema.incidents).set({ status: INCIDENT_STATUS.VALIDATED, updatedAt: now }).where(eq(schema.incidents.id, incidentId))
+    await db.update(schema.incidents).set({
+      status: INCIDENT_STATUS.VALIDATED,
+      validatedAt: incident.validatedAt ?? now,
+      invalidatedAt: null,
+      updatedAt: now
+    }).where(eq(schema.incidents.id, incidentId))
   }
 
   if (body.action === 'invalidate') {
-    await db.update(schema.incidents).set({ status: INCIDENT_STATUS.INVALIDATED, updatedAt: now }).where(eq(schema.incidents.id, incidentId))
+    await db.update(schema.incidents).set({
+      status: INCIDENT_STATUS.INVALIDATED,
+      invalidatedAt: now,
+      updatedAt: now
+    }).where(eq(schema.incidents.id, incidentId))
     await db.delete(schema.responderLocations).where(eq(schema.responderLocations.incidentId, incidentId))
   }
 

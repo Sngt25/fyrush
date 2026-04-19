@@ -105,11 +105,16 @@ export async function createIncidentReport(input: {
         ? INCIDENT_STATUS.VALIDATED
         : nearbyIncident.status
 
+      const validatedAt = nextStatus === INCIDENT_STATUS.VALIDATED
+        ? (nearbyIncident.validatedAt ?? now)
+        : nearbyIncident.validatedAt
+
       await db
         .update(schema.incidents)
         .set({
           reportCount: nearbyIncident.reportCount + 1,
           status: nextStatus,
+          validatedAt,
           updatedAt: now
         })
         .where(eq(schema.incidents.id, incidentId))
@@ -127,6 +132,8 @@ export async function createIncidentReport(input: {
       createdByUserId: input.userId,
       createdAt: now,
       updatedAt: now,
+      validatedAt: input.autoValidate ? now : null,
+      invalidatedAt: null,
       timerStartedAt: null,
       dispatchedAt: null,
       closedAt: null

@@ -31,7 +31,9 @@ useSeoMeta({
 
   <UApp>
     <UMain class="min-h-screen fyrush-bg">
-      <NuxtPage />
+      <NuxtLayout>
+        <NuxtPage />
+      </NuxtLayout>
     </UMain>
   </UApp>
 </template>
