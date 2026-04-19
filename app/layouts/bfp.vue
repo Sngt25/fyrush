@@ -50,7 +50,7 @@ watch(() => route.path, () => {
     <UHeader
       title="Fyrush"
       to="/bfp/dashboard"
-      class="fixed inset-x-0 top-0 z-50 border-b border-default bg-white/95 backdrop-blur"
+      class="fixed inset-x-0 top-0 z-50 border-b border-default bg-default/95 text-default backdrop-blur"
       :toggle="false"
       :ui="{
         root: 'h-16',

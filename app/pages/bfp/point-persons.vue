@@ -76,7 +76,7 @@ async function removePointPerson(id: string) {
 
 <template>
   <div class="space-y-4">
-    <h1 class="text-3xl font-black fyrush-title">
+    <h1 class="text-3xl text-black font-bold">
       Point Persons
     </h1>
 

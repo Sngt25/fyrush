@@ -174,7 +174,7 @@ async function runAction(incidentId: string, action: 'validate' | 'invalidate' |
 <template>
   <div class="space-y-4">
     <div class="flex flex-wrap items-center justify-between gap-3">
-      <h1 class="text-3xl font-black fyrush-title">
+      <h1 class="text-3xl text-black font-bold">
         Dashboard
       </h1>
     </div>
