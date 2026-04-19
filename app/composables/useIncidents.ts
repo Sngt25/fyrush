@@ -46,13 +46,6 @@ export function useIncidents() {
     })
   }
 
-  async function assignPointPerson(incidentId: string, userId: string) {
-    await $fetch(`/api/incidents/${incidentId}/assign`, {
-      method: 'POST',
-      body: { userId }
-    })
-  }
-
   return {
     incidents,
     history,
@@ -60,7 +53,6 @@ export function useIncidents() {
     fetchHistory,
     reportIncident,
     updateIncidentStatus,
-    updateResponderLocation,
-    assignPointPerson
+    updateResponderLocation
   }
 }

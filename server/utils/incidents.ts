@@ -1,6 +1,26 @@
-import { and, desc, eq, gte, sql } from 'drizzle-orm'
+import { and, desc, eq, or } from 'drizzle-orm'
 import { db, schema } from 'hub:db'
 import { INCIDENT_STATUS } from '#shared/fyrush'
+
+const FIRE_PERIMETER_METERS = 30
+
+function distanceMeters(aLat: number, aLng: number, bLat: number, bLng: number) {
+  const toRadians = (value: number) => value * (Math.PI / 180)
+  const earthRadiusMeters = 6371000
+
+  const dLat = toRadians(bLat - aLat)
+  const dLng = toRadians(bLng - aLng)
+  const lat1 = toRadians(aLat)
+  const lat2 = toRadians(bLat)
+
+  const sinHalfDLat = Math.sin(dLat / 2)
+  const sinHalfDLng = Math.sin(dLng / 2)
+
+  const haversine = sinHalfDLat * sinHalfDLat
+    + Math.cos(lat1) * Math.cos(lat2) * sinHalfDLng * sinHalfDLng
+
+  return 2 * earthRadiusMeters * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine))
+}
 
 export async function listIncidentFeed(limit = 50) {
   return db.select().from(schema.incidents).orderBy(desc(schema.incidents.updatedAt)).limit(limit)
@@ -34,26 +54,36 @@ export async function createIncidentReport(input: {
 }) {
   const now = Date.now()
 
-  // Merge with a nearby recent incident to avoid alert duplication from rapid reports.
-  const nearby = await db
+  // Merge reports that fall within the computed fire perimeter.
+  const activeIncidents = await db
     .select()
     .from(schema.incidents)
     .where(
-      and(
-        gte(schema.incidents.createdAt, now - 5 * 60 * 1000),
-        sql`ABS(${schema.incidents.latitude} - ${input.latitude}) <= 0.003`,
-        sql`ABS(${schema.incidents.longitude} - ${input.longitude}) <= 0.003`,
-        sql`${schema.incidents.status} != ${INCIDENT_STATUS.COMPLETED}`
+      or(
+        eq(schema.incidents.status, INCIDENT_STATUS.NEW),
+        eq(schema.incidents.status, INCIDENT_STATUS.VALIDATED),
+        eq(schema.incidents.status, INCIDENT_STATUS.ON_THE_WAY)
       )
     )
-    .orderBy(desc(schema.incidents.createdAt))
-    .limit(1)
+    .orderBy(desc(schema.incidents.updatedAt))
+
+  const nearbyIncident = activeIncidents
+    .map(item => ({
+      item,
+      distance: distanceMeters(item.latitude, item.longitude, input.latitude, input.longitude)
+    }))
+    .filter(entry => entry.distance <= FIRE_PERIMETER_METERS)
+    .sort((a, b) => {
+      if (a.distance !== b.distance)
+        return a.distance - b.distance
+
+      return b.item.updatedAt - a.item.updatedAt
+    })[0]?.item
 
   let incidentId: string
   let alreadyReported = false
 
-  if (nearby.length > 0 && nearby[0]) {
-    const nearbyIncident = nearby[0]
+  if (nearbyIncident) {
     incidentId = nearbyIncident.id
 
     const existingReport = await db
@@ -71,7 +101,7 @@ export async function createIncidentReport(input: {
       alreadyReported = true
 
     if (!alreadyReported) {
-      const nextStatus = input.autoValidate && nearbyIncident.status !== INCIDENT_STATUS.COMPLETED
+      const nextStatus = input.autoValidate && nearbyIncident.status === INCIDENT_STATUS.NEW
         ? INCIDENT_STATUS.VALIDATED
         : nearbyIncident.status
 

@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm'
+import { eq, ne } from 'drizzle-orm'
 import { db, schema } from 'hub:db'
 import { INCIDENT_STATUS, USER_ROLE } from '#shared/fyrush'
 import { requireCompleteUser } from '../../../utils/auth'
@@ -31,6 +31,8 @@ export default defineEventHandler(async (event) => {
   }
 
   const now = Date.now()
+
+  await db.delete(schema.responderLocations).where(ne(schema.responderLocations.incidentId, incidentId))
 
   const existing = await db.query.responderLocations.findFirst({
     where: eq(schema.responderLocations.incidentId, incidentId)

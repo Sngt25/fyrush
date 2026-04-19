@@ -18,8 +18,14 @@ export default defineEventHandler(async (event) => {
   })
 
   if (existing) {
+    if (existing.role === USER_ROLE.BFP)
+      throw createError({ statusCode: 409, statusMessage: 'BFP account cannot be added as point person.' })
+
     if (existing.role !== USER_ROLE.POINT_PERSON) {
-      throw createError({ statusCode: 409, statusMessage: 'This email is already used by another account.' })
+      await db
+        .update(schema.users)
+        .set({ role: USER_ROLE.POINT_PERSON })
+        .where(eq(schema.users.id, existing.id))
     }
 
     return {
@@ -27,11 +33,13 @@ export default defineEventHandler(async (event) => {
       pointPerson: {
         id: existing.id,
         email: existing.email,
-        name: existing.profileComplete ? existing.name : 'Unregistered',
-        mobile: existing.profileComplete ? existing.mobile : 'Unregistered',
-        address: existing.profileComplete ? existing.address : 'Unregistered',
+        name: existing.name,
+        mobile: existing.mobile,
+        address: existing.address,
         registered: Boolean(existing.profileComplete)
-      }
+      },
+      alreadyExists: true,
+      canAssignDirectly: true
     }
   }
 
@@ -65,6 +73,8 @@ export default defineEventHandler(async (event) => {
       mobile: 'Unregistered',
       address: 'Unregistered',
       registered: false
-    }
+    },
+    alreadyExists: false,
+    canAssignDirectly: true
   }
 })

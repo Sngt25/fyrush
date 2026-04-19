@@ -45,14 +45,30 @@ const bfpSharedPoints = computed(() => {
 
   const incidentById = new Map(activeIncidentPins.value.map(item => [item.incidentId, item]))
 
-  return payload.value.responder
+  const activeResponders = payload.value.responder
     .filter(item => incidentById.has(item.incidentId))
     .map(item => ({
       incidentId: item.incidentId,
       latitude: item.latitude,
       longitude: item.longitude,
+      updatedAt: item.updatedAt,
       address: incidentById.get(item.incidentId)?.address || 'Responder location'
     }))
+
+  const latestResponder = activeResponders
+    .sort((a, b) => b.updatedAt - a.updatedAt)[0]
+
+  if (!latestResponder)
+    return []
+
+  return [
+    {
+      incidentId: latestResponder.incidentId,
+      latitude: latestResponder.latitude,
+      longitude: latestResponder.longitude,
+      address: latestResponder.address
+    }
+  ]
 })
 
 const locationLabel = computed(() =>

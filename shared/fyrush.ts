@@ -1,6 +1,8 @@
 export const BARANGAY_KALIPAY_CENTER = {
-  lat: 12.3717467,
-  lng: 123.622003
+  // lat: 12.3717467,
+  // lng: 123.622003
+  lat: 13.14790,
+  lng: 123.72041
 } as const
 
 export const INCIDENT_STATUS = {

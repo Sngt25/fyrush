@@ -2,7 +2,7 @@
 import { INCIDENT_STATUS } from '#shared/fyrush'
 
 const { user, logout } = useAuthSession()
-const { incidents, fetchIncidents, updateIncidentStatus, updateResponderLocation, assignPointPerson } = useIncidents()
+const { incidents, fetchIncidents, updateIncidentStatus, updateResponderLocation } = useIncidents()
 const { payload, connect, disconnect } = useIncidentSocket()
 const { rememberIncidents, notifyNewIncidents } = useIncidentPwaNotifications()
 const { toMessage } = useAppError()
@@ -149,8 +149,28 @@ async function startLiveShare(incidentId: string) {
     return
   }
 
+  // Current system supports one BFP unit, so keep only one live-share stream active.
+  for (const activeIncidentId of positionWatches.keys()) {
+    if (activeIncidentId !== incidentId)
+      stopLiveShare(activeIncidentId)
+  }
+
   if (positionWatches.has(incidentId))
     return
+
+  navigator.geolocation.getCurrentPosition(async (position) => {
+    try {
+      await updateResponderLocation(incidentId, position.coords.latitude, position.coords.longitude)
+    } catch (err) {
+      actionError.value = toMessage(err, 'Unable to publish responder location.')
+    }
+  }, () => {
+    // Ignore one-shot lookup failure; continuous watch below can still recover.
+  }, {
+    enableHighAccuracy: true,
+    maximumAge: 2_000,
+    timeout: 10_000
+  })
 
   const watchId = navigator.geolocation.watchPosition(async (position) => {
     try {
@@ -192,23 +212,11 @@ async function runAction(incidentId: string, action: 'validate' | 'invalidate' |
   }
 }
 
-async function quickAssign(incidentId: string, userId?: string) {
-  if (!userId)
-    return
-
-  try {
-    await assignPointPerson(incidentId, userId)
-    await fetchIncidents()
-  } catch (err) {
-    actionError.value = toMessage(err, 'Assign failed.')
-  }
-}
-
 async function addPointPerson() {
   actionError.value = ''
 
   try {
-    await $fetch('/api/bfp/point-persons', {
+    const response = await $fetch<{ alreadyExists?: boolean }>('/api/bfp/point-persons', {
       method: 'POST',
       body: { email: pointPersonEmail.value }
     })
@@ -216,8 +224,10 @@ async function addPointPerson() {
     pointPersonEmail.value = ''
     await Promise.all([fetchPointPersons(), fetchSummary()])
     toast.add({
-      title: 'Point person saved',
-      description: 'The email is now registered for point person onboarding.',
+      title: response.alreadyExists ? 'Existing user found' : 'Point person saved',
+      description: response.alreadyExists
+        ? 'This email already belongs to a user and can now be assigned directly as point person for incidents.'
+        : 'The email is now registered for point person onboarding.',
       color: 'success',
       icon: 'i-lucide-user-plus'
     })
@@ -414,15 +424,6 @@ async function signOut() {
                   </UButton>
                 </div>
 
-                <div class="grid grid-cols-1 gap-2 pt-2">
-                  <UButton
-                    size="sm"
-                    variant="outline"
-                    @click="quickAssign(incident.id, incident.reportingUsers?.[0]?.userId)"
-                  >
-                    Assign 1st Reporter
-                  </UButton>
-                </div>
               </div>
             </UCard>
 
