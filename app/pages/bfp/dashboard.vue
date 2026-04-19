@@ -231,7 +231,7 @@ async function runAction(incidentId: string, action: 'validate' | 'invalidate' |
             Active Incidents Map
           </p>
           <p class="text-xs text-muted">
-            Centered near barangay set location
+            Centered near barangay Kalipay
           </p>
         </div>
       </template>
