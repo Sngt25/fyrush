@@ -76,6 +76,8 @@ pnpm run db:migrate:remote
 pnpm exec wrangler deploy
 ```
 
+The migration command uses `wrangler.jsonc` (with `migrations_table: "_hub_migrations"`) so CI can resolve migration files reliably.
+
 ## CI/CD (GitHub Actions)
 
 This repository now uses two workflows:
