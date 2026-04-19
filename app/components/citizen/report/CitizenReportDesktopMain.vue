@@ -95,7 +95,7 @@ defineEmits<{
       <section class="col-span-5 space-y-4">
         <UCard
           v-if="latestIncident"
-          class="bg-(--fyrush-ink) text-white border-none"
+          class="border-none"
         >
           <template #header>
             <h2 class="font-bold text-lg">
@@ -105,7 +105,7 @@ defineEmits<{
           <p class="font-semibold capitalize">
             {{ latestIncident.status }}
           </p>
-          <p class="text-sm text-white/85 mt-1">
+          <p class="text-sm mt-1">
             {{ latestIncident.address }}
           </p>
         </UCard>

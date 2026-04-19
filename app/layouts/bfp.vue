@@ -121,7 +121,7 @@ watch(() => route.path, () => {
       <template #body>
         <div class="space-y-4">
           <div>
-            <p class="font-black text-lg fyrush-title">
+            <p class="font-black text-lg text-(--fyrush-ink) dark:text-(--fyrush-paper)">
               BFP Control
             </p>
             <p class="text-xs text-muted mt-1">
@@ -159,7 +159,7 @@ watch(() => route.path, () => {
         <aside class="hidden md:block md:sticky md:top-20 md:self-start">
           <UCard class="fyrush-panel">
             <template #header>
-              <p class="font-black text-lg fyrush-title">
+              <p class="font-black text-lg text-(--fyrush-ink) dark:text-(--fyrush-paper)">
                 BFP Control
               </p>
               <p class="text-xs text-muted mt-1">
