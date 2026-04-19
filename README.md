@@ -71,9 +71,22 @@ pnpm build
 Apply production D1 migrations and deploy:
 
 ```bash
+# run this after `pnpm build`
 pnpm run db:migrate:remote
-pnpm run deploy:prod
+pnpm exec wrangler deploy
 ```
+
+## CI/CD (GitHub Actions)
+
+This repository now uses two workflows:
+
+- `.github/workflows/ci.yml`: lint + typecheck on pull requests and `master` pushes
+- `.github/workflows/deploy.yml`: build, apply D1 migrations, and deploy on `master` pushes
+
+Set these repository secrets for deployment:
+
+- `CLOUDFLARE_API_TOKEN`
+- `CLOUDFLARE_ACCOUNT_ID`
 
 Locally preview production build:
 

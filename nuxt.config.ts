@@ -38,15 +38,18 @@ export default defineNuxtConfig({
   },
 
   hub: {
-    db: useLocalHubDb
-      ? {
-          dialect: 'sqlite',
-          driver: 'libsql',
-          connection: {
-            url: process.env.NUXT_HUB_LOCAL_DB_URL || 'file:.data/db/sqlite.db'
+    db: {
+      dialect: 'sqlite',
+      driver: useLocalHubDb ? 'libsql' : 'd1',
+      ...(useLocalHubDb
+        ? {
+            connection: {
+              url: process.env.NUXT_HUB_LOCAL_DB_URL || 'file:.data/db/sqlite.db'
+            }
           }
-        }
-      : 'sqlite',
+        : {}),
+      applyMigrationsDuringBuild: false
+    },
     kv: true
   },
 
