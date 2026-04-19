@@ -15,6 +15,7 @@ export default defineNuxtConfig({
     bfpEmail: process.env.BFP_EMAIL,
     public: {
       googleClientId: resolvedGoogleClientId,
+      googleUseFedCMForPrompt: false,
       googleAuth: {
         clientId: resolvedGoogleClientId,
         promptOneTap: false
@@ -62,7 +63,7 @@ export default defineNuxtConfig({
     clientId: resolvedGoogleClientId,
     autoLoadScript: true,
     promptOneTap: false,
-    enableServerVerify: true
+    enableServerVerify: false
   },
 
   pwa: {
