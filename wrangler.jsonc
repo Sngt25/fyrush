@@ -9,7 +9,7 @@
     {
       "binding": "DB",
       "database_name": "fyrush",
-      "database_id": "0c3da0ec-d5c7-45cd-955a-9fca381fcd60",
+      "database_id": "2912403e-4ece-47a8-b91f-8a3767b9fd02",
       "migrations_table": "_hub_migrations",
       "migrations_dir": "server/db/migrations/sqlite"
     }
