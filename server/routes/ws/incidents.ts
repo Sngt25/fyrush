@@ -1,11 +1,19 @@
 import { desc } from 'drizzle-orm'
 import { db, schema } from 'hub:db'
+import { INCIDENT_STATUS } from '#shared/fyrush'
 
 const peerTimers = new Map<string, ReturnType<typeof setInterval>>()
 
 async function buildPayload() {
   const incidents = await db.select().from(schema.incidents).orderBy(desc(schema.incidents.updatedAt)).limit(60)
-  const responder = await db.select().from(schema.responderLocations)
+  const activeIncidentIds = new Set(
+    incidents
+      .filter(item => item.status !== INCIDENT_STATUS.COMPLETED && item.status !== INCIDENT_STATUS.INVALIDATED)
+      .map(item => item.id)
+  )
+
+  const responder = (await db.select().from(schema.responderLocations))
+    .filter(item => activeIncidentIds.has(item.incidentId))
 
   return JSON.stringify({ incidents, responder, ts: Date.now() })
 }

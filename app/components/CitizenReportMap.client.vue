@@ -7,10 +7,22 @@ const props = withDefaults(defineProps<{
   manualMarker: [number, number]
   userHasRegisteredPoint: boolean
   registeredPoint: [number, number] | null
-  bfpSharedPoint?: [number, number] | null
+  bfpSharedPoints?: Array<{
+    incidentId: string
+    latitude: number
+    longitude: number
+    address: string
+  }>
+  incidentPins?: Array<{
+    incidentId: string
+    latitude: number
+    longitude: number
+    address: string
+  }>
   mapHeight?: string
 }>(), {
-  bfpSharedPoint: null,
+  bfpSharedPoints: () => [],
+  incidentPins: () => [],
   mapHeight: '24rem'
 })
 
@@ -40,6 +52,32 @@ function onMapClick(event: unknown) {
         name="OpenStreetMap"
       />
       <LMarker :lat-lng="[props.manualMarker[1], props.manualMarker[0]]" />
+
+      <LMarker
+        v-for="incidentPin in props.incidentPins"
+        :key="`incident-${incidentPin.incidentId}`"
+        :lat-lng="[incidentPin.latitude, incidentPin.longitude]"
+      >
+        <LIcon
+          icon-url="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-orange.png"
+          shadow-url="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png"
+          :icon-size="[25, 41]"
+          :icon-anchor="[12, 41]"
+          :popup-anchor="[1, -34]"
+          :shadow-size="[41, 41]"
+        />
+        <LTooltip
+          :options="{
+            permanent: true,
+            direction: 'top',
+            offset: [0, -28],
+            className: 'incident-tooltip'
+          }"
+        >
+          Reported Fire
+        </LTooltip>
+      </LMarker>
+
       <LMarker
         v-if="props.userHasRegisteredPoint && props.registeredPoint"
         :lat-lng="[props.registeredPoint[1], props.registeredPoint[0]]"
@@ -65,8 +103,9 @@ function onMapClick(event: unknown) {
       </LMarker>
 
       <LMarker
-        v-if="props.bfpSharedPoint"
-        :lat-lng="[props.bfpSharedPoint[1], props.bfpSharedPoint[0]]"
+        v-for="sharedPoint in props.bfpSharedPoints"
+        :key="`bfp-${sharedPoint.incidentId}`"
+        :lat-lng="[sharedPoint.latitude, sharedPoint.longitude]"
       >
         <LIcon
           icon-url="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png"
@@ -84,7 +123,7 @@ function onMapClick(event: unknown) {
             className: 'bfp-tooltip'
           }"
         >
-          BFP Shared
+          BFP Responder
         </LTooltip>
       </LMarker>
     </LMap>
@@ -103,6 +142,20 @@ function onMapClick(event: unknown) {
 }
 
 :deep(.set-location-tooltip::before) {
+  display: none;
+}
+
+:deep(.incident-tooltip) {
+  background: #9a3412;
+  border: 1px solid #7c2d12;
+  border-radius: 9999px;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+}
+
+:deep(.incident-tooltip::before) {
   display: none;
 }
 

@@ -28,15 +28,31 @@ const alreadyReported = computed(() =>
   history.value.some(item => item.status !== INCIDENT_STATUS.COMPLETED && item.status !== INCIDENT_STATUS.INVALIDATED)
 )
 
-const bfpSharedPoint = computed<[number, number] | null>(() => {
-  if (!latestIncident.value || !payload.value?.responder)
-    return null
+const activeIncidentPins = computed(() =>
+  incidents.value
+    .filter(item => item.status !== INCIDENT_STATUS.COMPLETED && item.status !== INCIDENT_STATUS.INVALIDATED)
+    .map(item => ({
+      incidentId: item.id,
+      latitude: item.latitude,
+      longitude: item.longitude,
+      address: item.address
+    }))
+)
 
-  const responder = payload.value.responder.find(item => item.incidentId === latestIncident.value?.id)
-  if (!responder)
-    return null
+const bfpSharedPoints = computed(() => {
+  if (!payload.value?.responder)
+    return []
 
-  return [responder.longitude, responder.latitude]
+  const incidentById = new Map(activeIncidentPins.value.map(item => [item.incidentId, item]))
+
+  return payload.value.responder
+    .filter(item => incidentById.has(item.incidentId))
+    .map(item => ({
+      incidentId: item.incidentId,
+      latitude: item.latitude,
+      longitude: item.longitude,
+      address: incidentById.get(item.incidentId)?.address || 'Responder location'
+    }))
 })
 
 const locationLabel = computed(() =>
@@ -252,7 +268,8 @@ async function signOut() {
       v-model:manual-marker="manualMarker"
       :use-set-location="useSetLocation"
       :set-location-point="setLocationPoint"
-      :bfp-shared-point="bfpSharedPoint"
+      :bfp-shared-points="bfpSharedPoints"
+      :incident-pins="activeIncidentPins"
       @choose-manual-location="chooseManualLocation"
       @confirm-set-location="confirmSetLocation"
       @confirm-manual-location="confirmManualLocation"

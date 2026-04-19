@@ -5,7 +5,18 @@ const props = defineProps<{
   useSetLocation: boolean
   manualMarker: [number, number]
   setLocationPoint: [number, number]
-  bfpSharedPoint: [number, number] | null
+  bfpSharedPoints: Array<{
+    incidentId: string
+    latitude: number
+    longitude: number
+    address: string
+  }>
+  incidentPins: Array<{
+    incidentId: string
+    latitude: number
+    longitude: number
+    address: string
+  }>
 }>()
 
 const emit = defineEmits<{
@@ -114,7 +125,8 @@ function useSetLocationFromMap() {
         v-model:manual-marker="draftManualMarker"
         :user-has-registered-point="true"
         :registered-point="setLocationPoint"
-        :bfp-shared-point="bfpSharedPoint"
+        :bfp-shared-points="bfpSharedPoints"
+        :incident-pins="incidentPins"
         :map-height="mapFullscreen ? 'calc(100dvh - 12rem)' : '24rem'"
       />
     </template>

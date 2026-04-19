@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm'
 import { db, schema } from 'hub:db'
-import { USER_ROLE } from '#shared/fyrush'
+import { INCIDENT_STATUS, USER_ROLE } from '#shared/fyrush'
 import { requireCompleteUser } from '../../../utils/auth'
 
 export default defineEventHandler(async (event) => {
@@ -14,6 +14,21 @@ export default defineEventHandler(async (event) => {
 
   if (typeof body.latitude !== 'number' || typeof body.longitude !== 'number')
     throw createError({ statusCode: 400, statusMessage: 'latitude and longitude are required.' })
+
+  const incident = await db.query.incidents.findFirst({
+    where: eq(schema.incidents.id, incidentId)
+  })
+
+  if (!incident)
+    throw createError({ statusCode: 404, statusMessage: 'Incident not found.' })
+
+  if (incident.status === INCIDENT_STATUS.COMPLETED || incident.status === INCIDENT_STATUS.INVALIDATED) {
+    await db.delete(schema.responderLocations).where(eq(schema.responderLocations.incidentId, incidentId))
+
+    return {
+      ok: true
+    }
+  }
 
   const now = Date.now()
 

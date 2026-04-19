@@ -26,6 +26,7 @@ export default defineEventHandler(async (event) => {
 
   if (body.action === 'invalidate') {
     await db.update(schema.incidents).set({ status: INCIDENT_STATUS.INVALIDATED, updatedAt: now }).where(eq(schema.incidents.id, incidentId))
+    await db.delete(schema.responderLocations).where(eq(schema.responderLocations.incidentId, incidentId))
   }
 
   if (body.action === 'start_timer') {
@@ -43,6 +44,7 @@ export default defineEventHandler(async (event) => {
 
   if (body.action === 'complete') {
     await db.update(schema.incidents).set({ status: INCIDENT_STATUS.COMPLETED, closedAt: now, updatedAt: now }).where(eq(schema.incidents.id, incidentId))
+    await db.delete(schema.responderLocations).where(eq(schema.responderLocations.incidentId, incidentId))
   }
 
   const updated = await db.query.incidents.findFirst({ where: eq(schema.incidents.id, incidentId) })
