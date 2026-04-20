@@ -328,7 +328,9 @@ async function signOut() {
             <p>isPWAInstalled: <span class="font-bold">{{ String(pwaIsInstalled) }}</span></p>
             <p>isStandalone: <span class="font-bold">{{ String(isStandalone) }}</span></p>
             <p>canInstall: <span class="font-bold">{{ String(canInstall) }}</span></p>
-            <p class="sm:col-span-2">installStatus: <span class="font-bold">{{ installStatus }}</span></p>
+            <p class="sm:col-span-2">
+              installStatus: <span class="font-bold">{{ installStatus }}</span>
+            </p>
           </div>
         </UCard>
       </div>
