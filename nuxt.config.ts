@@ -13,8 +13,11 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     bfpEmail: process.env.BFP_EMAIL,
+    webPushPrivateKey: process.env.NUXT_WEB_PUSH_PRIVATE_KEY || '',
+    webPushSubject: process.env.NUXT_WEB_PUSH_SUBJECT || '',
     public: {
       googleClientId: resolvedGoogleClientId,
+      webPushPublicKey: process.env.NUXT_PUBLIC_WEB_PUSH_PUBLIC_KEY || '',
       googleUseFedCMForPrompt: false,
       googleAuth: {
         clientId: resolvedGoogleClientId,
@@ -70,6 +73,8 @@ export default defineNuxtConfig({
   },
 
   pwa: {
+    strategies: 'injectManifest',
+    filename: 'sw.ts',
     registerType: 'autoUpdate',
     client: {
       installPrompt: true

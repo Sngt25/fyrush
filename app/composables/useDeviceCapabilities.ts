@@ -40,6 +40,11 @@ function fromBase64Url(base64Url: string): ArrayBuffer {
   return bytes.buffer.slice(0)
 }
 
+function toPushServerKey(base64Url: string): Uint8Array {
+  const buffer = fromBase64Url(base64Url)
+  return new Uint8Array(buffer)
+}
+
 export function useDeviceCapabilities() {
   const canInstall = ref(false)
   const installStatus = ref('Checking install availability...')
@@ -55,6 +60,7 @@ export function useDeviceCapabilities() {
   const storedCredentialId = ref<string | null>(null)
 
   const { $pwa } = useNuxtApp()
+  const runtimeConfig = useRuntimeConfig()
 
   const pwaShowInstallPrompt = computed(() => resolvePwaBoolean($pwa?.showInstallPrompt))
   const pwaIsInstalled = computed(() => resolvePwaBoolean($pwa?.isPWAInstalled))
@@ -182,6 +188,8 @@ export function useDeviceCapabilities() {
     }
 
     const registration = await navigator.serviceWorker.ready
+    await registerPushSubscription(registration)
+
     await registration.showNotification('Fyrush PWA', {
       body: 'Notifications are enabled successfully.',
       icon: '/icons/icon-192.png',
@@ -189,6 +197,27 @@ export function useDeviceCapabilities() {
     })
 
     actionStatus.value = 'Notification sent through the service worker.'
+  }
+
+  async function registerPushSubscription(registration: ServiceWorkerRegistration) {
+    if (!('PushManager' in window))
+      return
+
+    const publicKey = runtimeConfig.public.webPushPublicKey?.trim()
+    if (!publicKey)
+      return
+
+    const existingSubscription = await registration.pushManager.getSubscription()
+    const subscription = existingSubscription
+      || await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: toPushServerKey(publicKey) as BufferSource
+      })
+
+    await $fetch('/api/notifications/subscriptions', {
+      method: 'POST',
+      body: subscription.toJSON()
+    })
   }
 
   async function registerPasskey() {
@@ -319,6 +348,15 @@ export function useDeviceCapabilities() {
     loadStoredPasskey()
     canVibrate.value = 'vibrate' in navigator
     notificationPermission.value = 'Notification' in window ? Notification.permission : 'default'
+
+    if (notificationPermission.value === 'granted') {
+      try {
+        const registration = await navigator.serviceWorker.ready
+        await registerPushSubscription(registration)
+      } catch {
+        // Ignore subscription setup failures during hydration.
+      }
+    }
 
     window.addEventListener('appinstalled', () => {
       actionStatus.value = 'App installed successfully.'

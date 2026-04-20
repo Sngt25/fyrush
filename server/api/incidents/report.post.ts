@@ -1,6 +1,7 @@
 import { BARANGAY_KALIPAY_CENTER, USER_ROLE } from '#shared/fyrush'
 import { requireCompleteUser } from '../../utils/auth'
 import { createIncidentReport } from '../../utils/incidents'
+import { sendIncidentPushToOtherUsers } from '../../utils/push'
 
 export default defineEventHandler(async (event) => {
   const user = await requireCompleteUser(event, [USER_ROLE.CITIZEN, USER_ROLE.POINT_PERSON])
@@ -33,6 +34,9 @@ export default defineEventHandler(async (event) => {
     source: useRegistered ? 'registered' : 'manual',
     autoValidate: user.role === USER_ROLE.POINT_PERSON
   })
+
+  if (!result.alreadyReported)
+    await sendIncidentPushToOtherUsers(result.incident, user.id)
 
   return {
     ok: true,

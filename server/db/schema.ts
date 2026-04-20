@@ -57,3 +57,12 @@ export const responderLocations = sqliteTable('responder_locations', {
   longitude: real('longitude').notNull(),
   updatedAt: integer('updated_at').notNull()
 })
+
+export const pushSubscriptions = sqliteTable('push_subscriptions', {
+  endpoint: text('endpoint').primaryKey(),
+  userId: text('user_id').notNull(),
+  p256dh: text('p256dh').notNull(),
+  auth: text('auth').notNull(),
+  createdAt: integer('created_at').notNull(),
+  updatedAt: integer('updated_at').notNull()
+})

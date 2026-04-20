@@ -43,6 +43,14 @@ NUXT_PUBLIC_GOOGLE_AUTH_CLIENT_ID=your-client-id.apps.googleusercontent.com
 # NUXT_PUBLIC_GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
 BFP_EMAIL=firestation@example.com
 
+# Web Push (required for background notifications while app/browser is closed)
+# Public key is exposed to the client app.
+NUXT_PUBLIC_WEB_PUSH_PUBLIC_KEY=your-base64url-vapid-public-key
+# Private key must stay server-side only.
+NUXT_WEB_PUSH_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
+# Subject should be a contact URL or mailto.
+NUXT_WEB_PUSH_SUBJECT=mailto:alerts@fyrush.app
+
 # Development DB switch for NuxtHub:
 # true (default) -> uses .data/db/sqlite.db while running nuxt dev
 # false -> disables local DB override in development
@@ -51,6 +59,14 @@ NUXT_HUB_USE_LOCAL_DB=true
 # Optional local DB override:
 # NUXT_HUB_LOCAL_DB_URL=file:.data/db/sqlite.db
 ```
+
+Generate VAPID keys (example with web-push CLI):
+
+```bash
+pnpm dlx web-push generate-vapid-keys
+```
+
+Use the generated public key as `NUXT_PUBLIC_WEB_PUSH_PUBLIC_KEY` and the generated private key as `NUXT_WEB_PUSH_PRIVATE_KEY`.
 
 ## Development Server
 
