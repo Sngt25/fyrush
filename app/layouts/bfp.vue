@@ -2,7 +2,9 @@
 import type { NavigationMenuItem } from '@nuxt/ui'
 
 const route = useRoute()
+const toast = useToast()
 const { user, logout } = useAuthSession()
+const { canInstall, triggerInstall } = useDeviceCapabilities()
 const mobileNavOpen = ref(false)
 const incidents = useState<Array<{ status: string }>>('fyrush-incidents', () => [])
 const wsConnected = useState<boolean>('fyrush-ws-connected', () => false)
@@ -38,6 +40,20 @@ async function signOut() {
   mobileNavOpen.value = false
   await logout()
   await navigateTo('/')
+}
+
+async function handleInstallClick() {
+  const result = await triggerInstall()
+  const color = result.status === 'error'
+    ? 'error'
+    : (result.status === 'opened' ? 'success' : 'warning')
+
+  toast.add({
+    title: 'Install App',
+    description: result.message,
+    color,
+    icon: result.status === 'error' ? 'i-lucide-circle-x' : 'i-lucide-download'
+  })
 }
 
 watch(() => route.path, () => {
@@ -80,6 +96,20 @@ watch(() => route.path, () => {
 
       <template #right>
         <div class="flex items-center gap-2">
+          <UButton
+            v-if="canInstall"
+            color="neutral"
+            variant="soft"
+            size="sm"
+            icon="i-lucide-download"
+            class="px-2 sm:px-3"
+            @click="handleInstallClick"
+          >
+            <span class="hidden sm:inline text-xs font-semibold">
+              Install
+            </span>
+          </UButton>
+
           <span
             class="hidden sm:inline-flex items-center gap-1 text-xs font-semibold"
             :class="wsConnected ? 'text-success' : 'text-muted'"

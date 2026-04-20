@@ -7,7 +7,7 @@ definePageMeta({
 
 const { incidents, fetchIncidents, updateIncidentStatus, updateResponderLocation } = useIncidents()
 const { payload, connect, disconnect } = useIncidentSocket()
-const { notifyNewIncidents } = useIncidentPwaNotifications()
+const { rememberIncidents, notifyNewIncidents } = useIncidentPwaNotifications()
 const { toMessage } = useAppError()
 
 const actionError = ref('')
@@ -20,6 +20,7 @@ const logIncidents = computed(() => logFilter.value === 'active' ? activeInciden
 
 onMounted(async () => {
   await fetchIncidents()
+  rememberIncidents(incidents.value)
   connect()
 })
 

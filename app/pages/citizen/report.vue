@@ -9,6 +9,7 @@ const { logout } = useAuthSession()
 const { incidents, history, fetchIncidents, fetchHistory, reportIncident } = useIncidents()
 const { payload, connect, disconnect } = useIncidentSocket()
 const { rememberIncidents, notifyNewIncidents } = useIncidentPwaNotifications()
+const { canInstall, installStatus, pwaShowInstallPrompt, pwaIsInstalled, isStandalone, notificationPermission, triggerInstall, requestNotifications } = useDeviceCapabilities()
 
 const locationPromptOpen = ref(false)
 const mapDialogOpen = ref(false)
@@ -75,6 +76,9 @@ const locationLabel = computed(() =>
   useSetLocation.value ? 'Location: Barangay Kalipay' : 'Location: Manual map pin'
 )
 
+const notificationHelpVisible = computed(() => notificationPermission.value === 'denied')
+const installDebugVisible = computed(() => route.query.installDebug === '1')
+
 const locationDetail = computed(() =>
   useSetLocation.value
     ? 'Set location active'
@@ -105,6 +109,9 @@ onMounted(async () => {
   await Promise.all([fetchIncidents(), fetchHistory()])
   rememberIncidents(incidents.value)
   connect()
+
+  if (notificationPermission.value === 'default')
+    await requestNotifications()
 
   locationPromptOpen.value = true
   statusMessage.value = 'Confirm where the fire is, then tap REPORT FIRE three times quickly.'
@@ -163,6 +170,20 @@ async function selectTab(tab: 'dashboard' | 'history') {
   await navigateTo({ path: '/citizen/report', query })
 }
 
+async function handleInstallClick() {
+  const result = await triggerInstall()
+  const color = result.status === 'error'
+    ? 'error'
+    : (result.status === 'opened' ? 'success' : 'warning')
+
+  toast.add({
+    title: 'Install App',
+    description: result.message,
+    color,
+    icon: result.status === 'error' ? 'i-lucide-circle-x' : 'i-lucide-download'
+  })
+}
+
 async function submitReport() {
   if (alreadyReported.value) {
     toast.add({
@@ -219,7 +240,45 @@ async function signOut() {
 <template>
   <div class="h-dvh w-full md:max-w-6xl mx-auto">
     <div class="md:hidden h-dvh w-full overflow-hidden bg-white flex flex-col">
-      <CitizenReportMobileHeader @sign-out="signOut" />
+      <CitizenReportMobileHeader
+        :show-install="canInstall"
+        @install-app="handleInstallClick"
+        @sign-out="signOut"
+      />
+
+      <div
+        v-if="installDebugVisible"
+        class="px-3 pt-3"
+      >
+        <UCard class="border border-warning/40 bg-warning/5">
+          <template #header>
+            <p class="text-xs font-bold tracking-wide uppercase">
+              Install Debug
+            </p>
+          </template>
+
+          <div class="space-y-1 text-xs">
+            <p>showInstallPrompt: <span class="font-bold">{{ String(pwaShowInstallPrompt) }}</span></p>
+            <p>isPWAInstalled: <span class="font-bold">{{ String(pwaIsInstalled) }}</span></p>
+            <p>isStandalone: <span class="font-bold">{{ String(isStandalone) }}</span></p>
+            <p>canInstall: <span class="font-bold">{{ String(canInstall) }}</span></p>
+            <p>installStatus: <span class="font-bold">{{ installStatus }}</span></p>
+          </div>
+        </UCard>
+      </div>
+
+      <div
+        v-if="notificationHelpVisible"
+        class="px-3 pt-3"
+      >
+        <UAlert
+          color="warning"
+          variant="soft"
+          icon="i-lucide-bell-off"
+          title="Notifications are blocked"
+          description="Fire alerts are disabled on this device. Enable notifications in your browser/app settings for Fyrush to receive alerts and vibration."
+        />
+      </div>
 
       <CitizenReportMobileMain
         v-if="activeTab === 'dashboard'"
@@ -247,9 +306,45 @@ async function signOut() {
 
     <div class="hidden md:flex h-dvh w-full overflow-hidden border border-default bg-white shadow-2xl flex-col">
       <CitizenReportDesktopHeader
+        :show-install="canInstall"
+        @install-app="handleInstallClick"
         @open-location-prompt="locationPromptOpen = true"
         @sign-out="signOut"
       />
+
+      <div
+        v-if="installDebugVisible"
+        class="px-6 pt-4"
+      >
+        <UCard class="border border-warning/40 bg-warning/5">
+          <template #header>
+            <p class="text-xs font-bold tracking-wide uppercase">
+              Install Debug
+            </p>
+          </template>
+
+          <div class="grid gap-2 text-xs sm:grid-cols-2">
+            <p>showInstallPrompt: <span class="font-bold">{{ String(pwaShowInstallPrompt) }}</span></p>
+            <p>isPWAInstalled: <span class="font-bold">{{ String(pwaIsInstalled) }}</span></p>
+            <p>isStandalone: <span class="font-bold">{{ String(isStandalone) }}</span></p>
+            <p>canInstall: <span class="font-bold">{{ String(canInstall) }}</span></p>
+            <p class="sm:col-span-2">installStatus: <span class="font-bold">{{ installStatus }}</span></p>
+          </div>
+        </UCard>
+      </div>
+
+      <div
+        v-if="notificationHelpVisible"
+        class="px-6 pt-4"
+      >
+        <UAlert
+          color="warning"
+          variant="soft"
+          icon="i-lucide-bell-off"
+          title="Notifications are blocked"
+          description="Fire alerts are disabled on this device. Enable notifications in your browser/app settings for Fyrush to receive alerts and vibration."
+        />
+      </div>
 
       <CitizenReportDesktopMain
         v-if="activeTab === 'dashboard'"

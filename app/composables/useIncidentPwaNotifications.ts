@@ -1,15 +1,30 @@
 import type { IncidentFeedItem } from '#shared/fyrush'
 
+const FIRE_ALERT_VIBRATION_PATTERN = [3000, 300, 3000, 300, 3000, 300, 3000, 300, 3000]
+
 export function useIncidentPwaNotifications() {
-  const knownIncidentIds = ref(new Set<string>())
+  const knownIncidentIds = useState<string[]>('fyrush-known-incident-ids', () => [])
+
+  function getKnownIncidentSet() {
+    return new Set(knownIncidentIds.value)
+  }
+
+  function commitKnownIncidentSet(set: Set<string>) {
+    knownIncidentIds.value = Array.from(set)
+  }
 
   function rememberIncidents(incidents: Array<Pick<IncidentFeedItem, 'id'>>) {
+    const knownSet = getKnownIncidentSet()
+
     for (const incident of incidents)
-      knownIncidentIds.value.add(incident.id)
+      knownSet.add(incident.id)
+
+    commitKnownIncidentSet(knownSet)
   }
 
   async function notifyNewIncidents(incidents: IncidentFeedItem[]) {
-    const newIncidents = incidents.filter(incident => !knownIncidentIds.value.has(incident.id))
+    const knownSet = getKnownIncidentSet()
+    const newIncidents = incidents.filter(incident => !knownSet.has(incident.id))
     rememberIncidents(incidents)
 
     if (!import.meta.client || newIncidents.length === 0)
@@ -29,6 +44,9 @@ export function useIncidentPwaNotifications() {
           tag: `incident-${incident.id}`
         })
       }
+
+      if ('vibrate' in navigator)
+        navigator.vibrate(FIRE_ALERT_VIBRATION_PATTERN)
     } catch {
       // Ignore notification failures when service worker is unavailable.
     }

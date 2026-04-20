@@ -1,6 +1,18 @@
-interface BeforeInstallPromptEvent extends Event {
-  prompt: () => Promise<void>
-  userChoice: Promise<{ outcome: 'accepted' | 'dismissed', platform: string }>
+type InstallTriggerStatus = 'already-installed' | 'opened' | 'manual' | 'error'
+
+type InstallTriggerResult = {
+  status: InstallTriggerStatus
+  message: string
+}
+
+function resolvePwaBoolean(value: unknown): boolean {
+  if (typeof value === 'boolean')
+    return value
+
+  if (value && typeof value === 'object' && 'value' in value)
+    return Boolean((value as { value?: unknown }).value)
+
+  return false
 }
 
 function randomBuffer(length: number): ArrayBuffer {
@@ -40,10 +52,12 @@ export function useDeviceCapabilities() {
   const latitude = ref<number | null>(null)
   const longitude = ref<number | null>(null)
 
-  const installPrompt = ref<BeforeInstallPromptEvent | null>(null)
   const storedCredentialId = ref<string | null>(null)
 
   const { $pwa } = useNuxtApp()
+
+  const pwaShowInstallPrompt = computed(() => resolvePwaBoolean($pwa?.showInstallPrompt))
+  const pwaIsInstalled = computed(() => resolvePwaBoolean($pwa?.isPWAInstalled))
 
   const isStandalone = computed(() => {
     if (!import.meta.client)
@@ -72,65 +86,85 @@ export function useDeviceCapabilities() {
   }
 
   function refreshInstallState() {
+    const isPwaInstalled = pwaIsInstalled.value
+    const hasPwaPrompt = pwaShowInstallPrompt.value
+
     if (isStandalone.value) {
       canInstall.value = false
       installStatus.value = 'App is already installed (standalone mode).'
       return
     }
 
-    if ($pwa?.isPWAInstalled) {
+    if (isPwaInstalled) {
       canInstall.value = false
       installStatus.value = 'App is already installed.'
       return
     }
 
-    if ($pwa?.showInstallPrompt) {
-      canInstall.value = true
-      installStatus.value = 'Install prompt is ready.'
-      return
-    }
-
-    if (installPrompt.value) {
+    if (hasPwaPrompt) {
       canInstall.value = true
       installStatus.value = 'Install prompt is ready.'
       return
     }
 
     canInstall.value = false
-    installStatus.value = 'Install prompt is unavailable in this browser/session. This is expected on iOS Safari and after prompt dismissal.'
+    installStatus.value = 'Install prompt is unavailable in this browser/session. Use browser menu options to install the app.'
   }
 
-  async function triggerInstall() {
-    if (isStandalone.value || $pwa?.isPWAInstalled) {
+  function getManualInstallMessage() {
+    const ua = navigator.userAgent.toLowerCase()
+    const isIOS = /iphone|ipad|ipod/.test(ua)
+    const isSafari = /safari/.test(ua) && !/crios|fxios|edgios/.test(ua)
+
+    if (isIOS && isSafari)
+      return 'Install manually: Safari > Share > Add to Home Screen.'
+
+    if (/android/.test(ua))
+      return 'Install manually: open browser menu and choose Install app or Add to Home screen.'
+
+    return 'Install manually from your browser menu: choose Install app.'
+  }
+
+  async function triggerInstall(): Promise<InstallTriggerResult> {
+    const isPwaInstalled = pwaIsInstalled.value
+    const hasPwaPrompt = pwaShowInstallPrompt.value
+
+    if (isStandalone.value || isPwaInstalled) {
       actionStatus.value = 'App is already installed.'
       refreshInstallState()
-      return
+      return {
+        status: 'already-installed',
+        message: 'App is already installed on this device.'
+      }
     }
 
-    if ($pwa?.showInstallPrompt) {
+    if (hasPwaPrompt && typeof $pwa?.install === 'function') {
       try {
         await $pwa.install()
-        actionStatus.value = 'Install flow opened.'
+        actionStatus.value = 'Install prompt opened.'
+        refreshInstallState()
+        return {
+          status: 'opened',
+          message: 'Install prompt opened. Follow the browser prompt to continue.'
+        }
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown error'
         actionStatus.value = `Install failed: ${message}`
+        refreshInstallState()
+        return {
+          status: 'error',
+          message: `Install failed: ${message}`
+        }
       }
-
-      refreshInstallState()
-      return
     }
 
-    if (!installPrompt.value) {
-      actionStatus.value = 'Install prompt not available in this browser/session.'
-      refreshInstallState()
-      return
-    }
-
-    await installPrompt.value.prompt()
-    const choice = await installPrompt.value.userChoice
-    actionStatus.value = choice.outcome === 'accepted' ? 'App install accepted.' : 'App install dismissed.'
-    installPrompt.value = null
+    const manualMessage = getManualInstallMessage()
+    actionStatus.value = manualMessage
     refreshInstallState()
+    return {
+      status: 'manual',
+      message: manualMessage
+    }
   }
 
   async function requestNotifications() {
@@ -286,12 +320,6 @@ export function useDeviceCapabilities() {
     canVibrate.value = 'vibrate' in navigator
     notificationPermission.value = 'Notification' in window ? Notification.permission : 'default'
 
-    window.addEventListener('beforeinstallprompt', (event) => {
-      event.preventDefault()
-      installPrompt.value = event as BeforeInstallPromptEvent
-      refreshInstallState()
-    })
-
     window.addEventListener('appinstalled', () => {
       actionStatus.value = 'App installed successfully.'
       refreshInstallState()
@@ -311,7 +339,7 @@ export function useDeviceCapabilities() {
     }
 
     watch(
-      () => [$pwa?.showInstallPrompt, $pwa?.isPWAInstalled],
+      () => [pwaShowInstallPrompt.value, pwaIsInstalled.value],
       () => {
         refreshInstallState()
       },
@@ -324,6 +352,9 @@ export function useDeviceCapabilities() {
   return {
     canInstall,
     installStatus,
+    pwaShowInstallPrompt,
+    pwaIsInstalled,
+    isStandalone,
     canVibrate,
     notificationPermission,
     geoStatus,
