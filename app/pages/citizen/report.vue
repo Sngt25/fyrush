@@ -13,6 +13,7 @@ const { canInstall, installStatus, pwaShowInstallPrompt, pwaIsInstalled, isStand
 
 const PUSH_SUBSCRIPTION_ACTIVE = 'Push subscription is active on this device.'
 const PUSH_SUBSCRIPTION_TOAST_ID = 'push-subscription-reminder'
+const NOTIFICATION_BLOCKED_TOAST_ID = 'notification-blocked-reminder'
 
 const locationPromptOpen = ref(false)
 const mapDialogOpen = ref(false)
@@ -88,6 +89,7 @@ const pushNeedsSubscription = computed(() =>
 const installDebugVisible = computed(() => route.query.installDebug === '1')
 
 let pushSubscriptionToastTimer: ReturnType<typeof setTimeout> | null = null
+let notificationBlockedToastTimer: ReturnType<typeof setTimeout> | null = null
 
 const locationDetail = computed(() =>
   useSetLocation.value
@@ -125,6 +127,7 @@ onMounted(async () => {
 
   await checkPushSubscriptionStatus()
   queuePushSubscriptionToast()
+  queueNotificationBlockedToast()
 
   locationPromptOpen.value = true
   statusMessage.value = 'Confirm where the fire is, then tap REPORT FIRE three times quickly.'
@@ -134,7 +137,19 @@ onBeforeUnmount(() => {
   if (pushSubscriptionToastTimer)
     clearTimeout(pushSubscriptionToastTimer)
 
+  if (notificationBlockedToastTimer)
+    clearTimeout(notificationBlockedToastTimer)
+
   disconnect()
+})
+
+watch(notificationPermission, (value) => {
+  if (value === 'denied') {
+    queueNotificationBlockedToast()
+    return
+  }
+
+  toast.remove(NOTIFICATION_BLOCKED_TOAST_ID)
 })
 
 function queuePushSubscriptionToast() {
@@ -167,6 +182,27 @@ function queuePushSubscriptionToast() {
       ]
     })
   }, 900)
+}
+
+function queueNotificationBlockedToast() {
+  if (!notificationHelpVisible.value)
+    return
+
+  if (notificationBlockedToastTimer)
+    clearTimeout(notificationBlockedToastTimer)
+
+  notificationBlockedToastTimer = setTimeout(() => {
+    if (!notificationHelpVisible.value)
+      return
+
+    toast.add({
+      id: NOTIFICATION_BLOCKED_TOAST_ID,
+      title: 'Notifications are blocked',
+      description: 'Enable notifications in browser/app settings to receive fire alerts and vibration.',
+      color: 'warning',
+      icon: 'i-lucide-bell-off'
+    })
+  }, 700)
 }
 
 watch(payload, async (value) => {
@@ -341,19 +377,6 @@ async function signOut() {
         </UCard>
       </div>
 
-      <div
-        v-if="notificationHelpVisible"
-        class="px-3 pt-3"
-      >
-        <UAlert
-          color="warning"
-          variant="soft"
-          icon="i-lucide-bell-off"
-          title="Notifications are blocked"
-          description="Fire alerts are disabled on this device. Enable notifications in your browser/app settings for Fyrush to receive alerts and vibration."
-        />
-      </div>
-
       <CitizenReportMobileMain
         v-if="activeTab === 'dashboard'"
         :location-label="locationLabel"
@@ -407,19 +430,6 @@ async function signOut() {
             </p>
           </div>
         </UCard>
-      </div>
-
-      <div
-        v-if="notificationHelpVisible"
-        class="px-6 pt-4"
-      >
-        <UAlert
-          color="warning"
-          variant="soft"
-          icon="i-lucide-bell-off"
-          title="Notifications are blocked"
-          description="Fire alerts are disabled on this device. Enable notifications in your browser/app settings for Fyrush to receive alerts and vibration."
-        />
       </div>
 
       <CitizenReportDesktopMain
