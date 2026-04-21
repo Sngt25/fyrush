@@ -51,6 +51,7 @@ export function useDeviceCapabilities() {
   const canVibrate = ref(false)
   const notificationPermission = ref<'default' | 'denied' | 'granted'>('default')
   const pushSubscriptionStatus = ref('Push subscription not checked yet.')
+  const pushSubscriptionChecked = ref(false)
   const geoStatus = ref('Location not requested yet.')
   const authStatus = ref('Biometric status not checked yet.')
   const actionStatus = ref('Ready.')
@@ -225,6 +226,38 @@ export function useDeviceCapabilities() {
     })
 
     pushSubscriptionStatus.value = 'Push subscription is active on this device.'
+    pushSubscriptionChecked.value = true
+  }
+
+  async function checkPushSubscriptionStatus() {
+    try {
+      if (notificationPermission.value !== 'granted') {
+        pushSubscriptionStatus.value = 'Push subscription requires notification permission.'
+        pushSubscriptionChecked.value = true
+        return false
+      }
+
+      if (!('PushManager' in window)) {
+        pushSubscriptionStatus.value = 'PushManager is not supported in this browser.'
+        pushSubscriptionChecked.value = true
+        return false
+      }
+
+      const registration = await navigator.serviceWorker.ready
+      const subscription = await registration.pushManager.getSubscription()
+
+      pushSubscriptionStatus.value = subscription
+        ? 'Push subscription is active on this device.'
+        : 'Push subscription is not active on this device.'
+      pushSubscriptionChecked.value = true
+
+      return Boolean(subscription)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error'
+      pushSubscriptionStatus.value = `Push subscription check failed: ${message}`
+      pushSubscriptionChecked.value = true
+      return false
+    }
   }
 
   async function ensurePushSubscription() {
@@ -370,15 +403,7 @@ export function useDeviceCapabilities() {
     canVibrate.value = 'vibrate' in navigator
     notificationPermission.value = 'Notification' in window ? Notification.permission : 'default'
 
-    if (notificationPermission.value === 'granted') {
-      try {
-        await ensurePushSubscription()
-      } catch {
-        // Ignore subscription setup failures during hydration.
-      }
-    } else {
-      pushSubscriptionStatus.value = 'Push subscription requires notification permission.'
-    }
+    await checkPushSubscriptionStatus()
 
     window.addEventListener('appinstalled', () => {
       actionStatus.value = 'App installed successfully.'
@@ -418,6 +443,7 @@ export function useDeviceCapabilities() {
     canVibrate,
     notificationPermission,
     pushSubscriptionStatus,
+    pushSubscriptionChecked,
     geoStatus,
     authStatus,
     actionStatus,
@@ -425,6 +451,7 @@ export function useDeviceCapabilities() {
     longitude,
     triggerInstall,
     requestNotifications,
+    checkPushSubscriptionStatus,
     ensurePushSubscription,
     registerPasskey,
     authenticateWithPasskey,
