@@ -44,12 +44,27 @@ async function createVapidJwt(endpoint: string, config: PushConfig) {
     .sign(privateKey)
 }
 
-async function sendSubscriptionPush(endpoint: string, config: PushConfig) {
+async function sendSubscriptionPushWithVapidHeader(endpoint: string, config: PushConfig) {
   const jwt = await createVapidJwt(endpoint, config)
 
   return await fetch(endpoint, {
     method: 'POST',
     headers: {
+      // RFC 8292 header format required by modern push services (notably mobile Safari/APNs).
+      Authorization: `vapid t=${jwt}, k=${config.publicKey}`,
+      TTL: '120',
+      Urgency: 'high'
+    }
+  })
+}
+
+async function sendSubscriptionPushWithLegacyHeader(endpoint: string, config: PushConfig) {
+  const jwt = await createVapidJwt(endpoint, config)
+
+  return await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      // Legacy WebPush/Crypto-Key format kept as fallback for providers expecting the old draft format.
       'Authorization': `WebPush ${jwt}`,
       'Crypto-Key': `p256ecdsa=${config.publicKey}`,
       'TTL': '120',
@@ -66,6 +81,10 @@ async function removeSubscription(endpoint: string) {
 
 function isInvalidSubscriptionResponse(statusCode: number) {
   return statusCode === 404 || statusCode === 410
+}
+
+function shouldRetryWithLegacyHeader(statusCode: number) {
+  return statusCode === 400 || statusCode === 401 || statusCode === 403
 }
 
 interface NotifiableIncident {
@@ -99,7 +118,10 @@ export async function sendIncidentPushToOtherUsers(incident: NotifiableIncident 
 
   await Promise.all(subscriptions.map(async ({ endpoint }) => {
     try {
-      const response = await sendSubscriptionPush(endpoint, config)
+      let response = await sendSubscriptionPushWithVapidHeader(endpoint, config)
+
+      if (shouldRetryWithLegacyHeader(response.status))
+        response = await sendSubscriptionPushWithLegacyHeader(endpoint, config)
 
       if (isInvalidSubscriptionResponse(response.status))
         await removeSubscription(endpoint)
