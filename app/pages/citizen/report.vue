@@ -9,7 +9,7 @@ const { logout } = useAuthSession()
 const { incidents, history, fetchIncidents, fetchHistory, reportIncident } = useIncidents()
 const { payload, connect, disconnect } = useIncidentSocket()
 const { rememberIncidents, notifyNewIncidents } = useIncidentPwaNotifications()
-const { canInstall, installStatus, pwaShowInstallPrompt, pwaIsInstalled, isStandalone, notificationPermission, triggerInstall, requestNotifications } = useDeviceCapabilities()
+const { canInstall, installStatus, pwaShowInstallPrompt, pwaIsInstalled, isStandalone, notificationPermission, pushSubscriptionStatus, triggerInstall, requestNotifications, ensurePushSubscription } = useDeviceCapabilities()
 
 const locationPromptOpen = ref(false)
 const mapDialogOpen = ref(false)
@@ -77,6 +77,7 @@ const locationLabel = computed(() =>
 )
 
 const notificationHelpVisible = computed(() => notificationPermission.value === 'denied')
+const pushNeedsSubscription = computed(() => pushSubscriptionStatus.value !== 'Push subscription is active on this device.')
 const installDebugVisible = computed(() => route.query.installDebug === '1')
 
 const locationDetail = computed(() =>
@@ -184,6 +185,15 @@ async function handleInstallClick() {
   })
 }
 
+async function handleSubscribeClick() {
+  if (notificationPermission.value !== 'granted') {
+    await requestNotifications()
+    return
+  }
+
+  await ensurePushSubscription()
+}
+
 async function submitReport() {
   if (alreadyReported.value) {
     toast.add({
@@ -280,6 +290,34 @@ async function signOut() {
         />
       </div>
 
+      <div
+        v-if="pushNeedsSubscription"
+        class="px-3 pt-3"
+      >
+        <UCard class="border border-primary/30 bg-primary/5">
+          <template #header>
+            <p class="text-xs font-bold tracking-wide uppercase">
+              Push Subscription
+            </p>
+          </template>
+
+          <div class="space-y-3">
+            <p class="text-xs text-muted">
+              {{ pushSubscriptionStatus }}
+            </p>
+
+            <UButton
+              color="primary"
+              icon="i-lucide-bell-ring"
+              block
+              @click="handleSubscribeClick"
+            >
+              Enable Background Alerts
+            </UButton>
+          </div>
+        </UCard>
+      </div>
+
       <CitizenReportMobileMain
         v-if="activeTab === 'dashboard'"
         :location-label="locationLabel"
@@ -346,6 +384,33 @@ async function signOut() {
           title="Notifications are blocked"
           description="Fire alerts are disabled on this device. Enable notifications in your browser/app settings for Fyrush to receive alerts and vibration."
         />
+      </div>
+
+      <div
+        v-if="pushNeedsSubscription"
+        class="px-6 pt-4"
+      >
+        <UCard class="border border-primary/30 bg-primary/5">
+          <template #header>
+            <p class="text-xs font-bold tracking-wide uppercase">
+              Push Subscription
+            </p>
+          </template>
+
+          <div class="flex items-center justify-between gap-3">
+            <p class="text-xs text-muted">
+              {{ pushSubscriptionStatus }}
+            </p>
+
+            <UButton
+              color="primary"
+              icon="i-lucide-bell-ring"
+              @click="handleSubscribeClick"
+            >
+              Enable Background Alerts
+            </UButton>
+          </div>
+        </UCard>
       </div>
 
       <CitizenReportDesktopMain

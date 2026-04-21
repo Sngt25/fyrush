@@ -50,6 +50,7 @@ export function useDeviceCapabilities() {
   const installStatus = ref('Checking install availability...')
   const canVibrate = ref(false)
   const notificationPermission = ref<'default' | 'denied' | 'granted'>('default')
+  const pushSubscriptionStatus = ref('Push subscription not checked yet.')
   const geoStatus = ref('Location not requested yet.')
   const authStatus = ref('Biometric status not checked yet.')
   const actionStatus = ref('Ready.')
@@ -200,12 +201,16 @@ export function useDeviceCapabilities() {
   }
 
   async function registerPushSubscription(registration: ServiceWorkerRegistration) {
-    if (!('PushManager' in window))
+    if (!('PushManager' in window)) {
+      pushSubscriptionStatus.value = 'PushManager is not supported in this browser.'
       return
+    }
 
     const publicKey = runtimeConfig.public.webPushPublicKey?.trim()
-    if (!publicKey)
+    if (!publicKey) {
+      pushSubscriptionStatus.value = 'Missing web push public key. Check NUXT_PUBLIC_WEB_PUSH_PUBLIC_KEY.'
       return
+    }
 
     const existingSubscription = await registration.pushManager.getSubscription()
     const subscription = existingSubscription
@@ -218,6 +223,22 @@ export function useDeviceCapabilities() {
       method: 'POST',
       body: subscription.toJSON()
     })
+
+    pushSubscriptionStatus.value = 'Push subscription is active on this device.'
+  }
+
+  async function ensurePushSubscription() {
+    try {
+      const registration = await navigator.serviceWorker.ready
+      await registerPushSubscription(registration)
+      actionStatus.value = 'Push subscription synced with the server.'
+      return true
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error'
+      pushSubscriptionStatus.value = `Push subscription failed: ${message}`
+      actionStatus.value = `Push subscription failed: ${message}`
+      return false
+    }
   }
 
   async function registerPasskey() {
@@ -351,11 +372,12 @@ export function useDeviceCapabilities() {
 
     if (notificationPermission.value === 'granted') {
       try {
-        const registration = await navigator.serviceWorker.ready
-        await registerPushSubscription(registration)
+        await ensurePushSubscription()
       } catch {
         // Ignore subscription setup failures during hydration.
       }
+    } else {
+      pushSubscriptionStatus.value = 'Push subscription requires notification permission.'
     }
 
     window.addEventListener('appinstalled', () => {
@@ -395,6 +417,7 @@ export function useDeviceCapabilities() {
     isStandalone,
     canVibrate,
     notificationPermission,
+    pushSubscriptionStatus,
     geoStatus,
     authStatus,
     actionStatus,
@@ -402,6 +425,7 @@ export function useDeviceCapabilities() {
     longitude,
     triggerInstall,
     requestNotifications,
+    ensurePushSubscription,
     registerPasskey,
     authenticateWithPasskey,
     clearPasskey,
