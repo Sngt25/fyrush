@@ -1,12 +1,13 @@
 /// <reference lib="webworker" />
 
 import { precacheAndRoute } from 'workbox-precaching'
+import type { PrecacheEntry } from 'workbox-precaching'
 
 declare let self: ServiceWorkerGlobalScope
 
 declare global {
   interface ServiceWorkerGlobalScope {
-    __WB_MANIFEST: Array<unknown>
+    __WB_MANIFEST: Array<string | PrecacheEntry>
   }
 }
 
