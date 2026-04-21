@@ -1,7 +1,6 @@
 import type { IncidentFeedItem } from '#shared/fyrush'
 import { INCIDENT_STATUS } from '#shared/fyrush'
 
-const FIRE_ALERT_VIBRATION_PATTERN = [3000, 300, 3000, 300, 3000, 300, 3000, 300, 3000]
 const KNOWN_INCIDENT_SIGNATURES_STORAGE_KEY = 'fyrush-known-incident-signatures'
 
 type KnownIncidentSignatures = Record<string, string>
@@ -94,32 +93,6 @@ export function useIncidentPwaNotifications() {
 
     if (!import.meta.client || activityIncidents.length === 0)
       return
-
-    if (!('Notification' in window) || Notification.permission !== 'granted')
-      return
-
-    try {
-      const registration = await navigator.serviceWorker.ready
-
-      for (const entry of activityIncidents) {
-        const notificationTitle = entry.isNew ? 'Fyrush Fire Alert' : 'Fyrush Fire Update'
-        const notificationBody = entry.isNew
-          ? `New report: ${entry.incident.address}`
-          : `Incident updated: ${entry.incident.address}`
-
-        await registration.showNotification(notificationTitle, {
-          body: notificationBody,
-          icon: '/icons/icon-192.png',
-          badge: '/icons/icon-192.png',
-          tag: `incident-${entry.incident.id}`
-        })
-      }
-
-      if ('vibrate' in navigator)
-        navigator.vibrate(FIRE_ALERT_VIBRATION_PATTERN)
-    } catch {
-      // Ignore notification failures when service worker is unavailable.
-    }
   }
 
   return {

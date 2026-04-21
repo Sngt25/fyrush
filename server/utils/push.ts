@@ -1,7 +1,6 @@
 import { SignJWT, importJWK, importPKCS8 } from 'jose'
 import { and, eq, ne } from 'drizzle-orm'
 import { db, schema } from 'hub:db'
-import { INCIDENT_STATUS } from '#shared/fyrush'
 
 interface PushConfig {
   publicKey: string
@@ -146,12 +145,8 @@ interface NotifiableIncident {
   status: string
 }
 
-function canNotifyForIncident(incident: NotifiableIncident) {
-  return incident.status !== INCIDENT_STATUS.COMPLETED && incident.status !== INCIDENT_STATUS.INVALIDATED
-}
-
 export async function sendIncidentPushToOtherUsers(incident: NotifiableIncident | null | undefined, actorUserId: string) {
-  if (!incident || !canNotifyForIncident(incident))
+  if (!incident)
     return
 
   const config = getPushConfig()

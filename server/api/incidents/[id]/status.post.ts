@@ -2,9 +2,10 @@ import { eq } from 'drizzle-orm'
 import { db, schema } from 'hub:db'
 import { INCIDENT_STATUS, USER_ROLE } from '#shared/fyrush'
 import { requireCompleteUser } from '../../../utils/auth'
+import { sendIncidentPushToOtherUsers } from '../../../utils/push'
 
 export default defineEventHandler(async (event) => {
-  await requireCompleteUser(event, [USER_ROLE.BFP])
+  const user = await requireCompleteUser(event, [USER_ROLE.BFP])
 
   const incidentId = getRouterParam(event, 'id')
   if (!incidentId)
@@ -57,6 +58,8 @@ export default defineEventHandler(async (event) => {
   }
 
   const updated = await db.query.incidents.findFirst({ where: eq(schema.incidents.id, incidentId) })
+
+  await sendIncidentPushToOtherUsers(updated, user.id)
 
   return {
     ok: true,
