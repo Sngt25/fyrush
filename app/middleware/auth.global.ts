@@ -28,9 +28,6 @@ export default defineNuxtRouteMiddleware(async (to) => {
   if (normalizedPath.startsWith('/api/'))
     return
 
-  if (normalizedPath === '/bfp/login')
-    return redirectTo('/')
-
   if (normalizedPath === '/bfp')
     return redirectTo('/bfp/dashboard')
 
