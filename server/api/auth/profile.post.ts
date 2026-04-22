@@ -5,15 +5,16 @@ import { requireUser, toAuthUser } from '../../utils/auth'
 
 export default defineEventHandler(async (event) => {
   const user = await requireUser(event)
-  const body = await readBody<{ mobile?: string, address?: string }>(event)
+  const body = await readBody<{ name?: string, mobile?: string, address?: string }>(event)
 
+  const name = body.name?.trim()
   const mobile = body.mobile?.trim()
   const address = body.address?.trim()
 
-  if (!mobile || !address) {
+  if (!name || !mobile || !address) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'Mobile number and address are required.'
+      statusMessage: 'Name, mobile number, and address are required.'
     })
   }
 
@@ -22,6 +23,7 @@ export default defineEventHandler(async (event) => {
   await db
     .update(schema.users)
     .set({
+      name,
       mobile,
       address,
       profileComplete: 1,

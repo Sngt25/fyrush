@@ -4,6 +4,7 @@ const toast = useToast()
 const { toMessage } = useAppError()
 
 const form = reactive({
+  name: '',
   mobile: '',
   address: ''
 })
@@ -16,6 +17,7 @@ watch(user, (value) => {
   if (!value)
     return
 
+  form.name = value.name ?? ''
   form.mobile = value.mobile ?? ''
   form.address = value.address ?? ''
 }, { immediate: true })
@@ -26,6 +28,7 @@ async function submit() {
   try {
     const shouldStayOnPage = isUpdateMode.value
     const result = await completeProfile({
+      name: form.name,
       mobile: form.mobile,
       address: form.address
     })
@@ -33,7 +36,7 @@ async function submit() {
     if (shouldStayOnPage) {
       toast.add({
         title: 'Profile updated',
-        description: 'Your mobile number and address were saved.',
+        description: 'Your name, mobile number, and address were saved.',
         color: 'success',
         icon: 'i-lucide-check-circle'
       })
@@ -72,6 +75,18 @@ async function submit() {
         </template>
 
         <div class="space-y-4 bred500">
+          <UFormField
+            label="Full name"
+            required
+            class="w-full"
+          >
+            <UInput
+              v-model="form.name"
+              placeholder="Enter your full name"
+              class="w-full"
+            />
+          </UFormField>
+
           <UFormField
             label="Mobile number"
             required
