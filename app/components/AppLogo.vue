@@ -5,6 +5,6 @@
       alt="Fyrush logo"
       class="w-24 h-24 rounded-full shadow-lg"
     >
-    <span class="text-2xl font-black tracking-tight fyrush-title">Fyrush</span>
+    <span class="text-2xl font-black tracking-tight">Fyrush</span>
   </div>
 </template>

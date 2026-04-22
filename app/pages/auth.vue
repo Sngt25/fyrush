@@ -107,64 +107,62 @@ function onGoogleError(err: unknown) {
 </script>
 
 <template>
-  <UContainer class="py-8 max-w-md">
-    <UCard class="fyrush-panel border border-default/70 shadow-xl">
-      <template #header>
+  <div class="min-h-screen flex items-center justify-center">
+    <UContainer class="py-8 max-w-md">
+      <UCard class="fyrush-panel border border-default/70 shadow-xl">
+        <template #header>
+          <div class="space-y-3">
+            <div class="flex justify-center">
+              <AppLogo class="w-44 h-auto" />
+            </div>
+
+            <div class="text-center space-y-1">
+              <h1 class="text-lg font-semibold text-highlighted">
+                Sign in to Fyrush
+              </h1>
+              <p class="text-sm text-muted">
+                Report incidents quickly and track updates in real time.
+              </p>
+            </div>
+          </div>
+        </template>
+
         <div class="space-y-4">
-          <div class="flex justify-center">
-            <AppLogo class="w-44 h-auto" />
-          </div>
-          <div class="space-y-1 text-center">
-            <h1 class="text-2xl font-black fyrush-title">
-              Continue with Google
-            </h1>
-            <p class="text-sm text-muted">
-              Sign in for citizen access. The BFP account is detected by the configured BFP_EMAIL.
-            </p>
-          </div>
-        </div>
-      </template>
-
-      <div class="space-y-4">
-        <div class="flex justify-center">
-          <ClientOnly v-if="hasGoogleClientId && isGoogleReady">
-            <GoogleLoginButton
-              :options="{ theme: 'filled_blue', size: 'large', text: 'continue_with', shape: 'pill', auto_select: false }"
-              @success="onGoogleSuccess"
-              @error="onGoogleError"
-            />
-          </ClientOnly>
-
-          <USkeleton
-            v-if="hasGoogleClientId && !isGoogleReady"
-            class="h-11 w-75 rounded-full"
+          <UAlert
+            color="neutral"
+            variant="subtle"
+            icon="i-lucide-shield-check"
+            title="Before you continue"
+            description="Use the Google account you want linked to your citizen or BFP profile."
           />
+
+          <div class="flex justify-center">
+            <ClientOnly v-if="hasGoogleClientId && isGoogleReady">
+              <GoogleLoginButton
+                :options="{ theme: 'filled_blue', size: 'large', text: 'continue_with', shape: 'pill', auto_select: false }"
+                @success="onGoogleSuccess"
+                @error="onGoogleError"
+              />
+            </ClientOnly>
+
+            <USkeleton
+              v-if="hasGoogleClientId && !isGoogleReady"
+              class="h-11 w-75 rounded-full"
+            />
+          </div>
+
+          <p class="text-xs text-muted text-center">
+            Having trouble? Make sure pop-ups are allowed and try refreshing the page.
+          </p>
         </div>
 
-        <UAlert
-          color="neutral"
-          variant="soft"
-          icon="i-lucide-shield-check"
-          title="Profile completion required"
-          description="New sign-ins must provide mobile number and address before protected pages are unlocked."
-        />
-
-        <UButton
-          to="/"
-          variant="ghost"
-          block
-          :disabled="pending"
+        <p
+          v-if="error"
+          class="text-sm text-error mt-3 text-center"
         >
-          Back
-        </UButton>
-      </div>
-
-      <p
-        v-if="error"
-        class="text-sm text-error mt-3 text-center"
-      >
-        {{ error }}
-      </p>
-    </UCard>
-  </UContainer>
+          {{ error }}
+        </p>
+      </UCard>
+    </UContainer>
+  </div>
 </template>

@@ -55,65 +55,67 @@ async function submit() {
 </script>
 
 <template>
-  <UContainer class="py-8 max-w-xl">
-    <UCard class="fyrush-panel border border-default/70 shadow-xl">
-      <template #header>
-        <div class="space-y-1">
-          <h1 class="text-2xl font-black fyrush-title">
-            {{ isUpdateMode ? 'Update profile' : 'Complete your profile' }}
-          </h1>
-          <p class="text-sm text-muted">
-            {{ isUpdateMode
-              ? 'Keep your mobile number and address up to date so responders can contact you quickly.'
-              : 'Mobile number and address are required before you can access protected routes.' }}
-          </p>
+  <div class="min-h-screen flex items-center justify-center">
+    <UContainer class="py-8 max-w-xl">
+      <UCard class="fyrush-panel border border-default/70 shadow-xl">
+        <template #header>
+          <div class="space-y-1">
+            <h1 class="text-2xl font-black">
+              {{ isUpdateMode ? 'Update profile' : 'Complete your profile' }}
+            </h1>
+            <p class="text-sm text-muted">
+              {{ isUpdateMode
+                ? 'Keep your mobile number and address up to date so responders can contact you quickly.'
+                : 'Mobile number and address are required before you can access protected routes.' }}
+            </p>
+          </div>
+        </template>
+
+        <div class="space-y-4 bred500">
+          <UFormField
+            label="Mobile number"
+            required
+            class="w-full"
+          >
+            <UInput
+              v-model="form.mobile"
+              placeholder="09xxxxxxxxx"
+              class="w-full"
+            />
+          </UFormField>
+
+          <UFormField
+            label="Address"
+            required
+            class="w-full"
+          >
+            <UTextarea
+              v-model="form.address"
+              :rows="4"
+              placeholder="Enter your full address"
+              class="w-full"
+            />
+          </UFormField>
+
+          <UButton
+            block
+            color="primary"
+            :loading="pending"
+            @click="submit"
+          >
+            {{ isUpdateMode ? 'Save changes' : 'Save and continue' }}
+          </UButton>
+
+          <UButton
+            v-if="isUpdateMode"
+            block
+            variant="ghost"
+            to="/citizen/report"
+          >
+            Back to report
+          </UButton>
         </div>
-      </template>
-
-      <div class="space-y-4 bred500">
-        <UFormField
-          label="Mobile number"
-          required
-          class="w-full"
-        >
-          <UInput
-            v-model="form.mobile"
-            placeholder="09xxxxxxxxx"
-            class="w-full"
-          />
-        </UFormField>
-
-        <UFormField
-          label="Address"
-          required
-          class="w-full"
-        >
-          <UTextarea
-            v-model="form.address"
-            :rows="4"
-            placeholder="Enter your full address"
-            class="w-full"
-          />
-        </UFormField>
-
-        <UButton
-          block
-          color="primary"
-          :loading="pending"
-          @click="submit"
-        >
-          {{ isUpdateMode ? 'Save changes' : 'Save and continue' }}
-        </UButton>
-
-        <UButton
-          v-if="isUpdateMode"
-          block
-          variant="ghost"
-          to="/citizen/report"
-        >
-          Back to report
-        </UButton>
-      </div>
-    </UCard>
-  </UContainer>
+      </UCard>
+    </UContainer>
+  </div>
 </template>
