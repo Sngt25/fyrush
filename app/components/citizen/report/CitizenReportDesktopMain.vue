@@ -1,8 +1,12 @@
 <script setup lang="ts">
+import { INCIDENT_STATUS } from '#shared/fyrush'
+
 interface IncidentCard {
   status: string
   address: string
   reportCount: number
+  dispatchedAt: number | null
+  closedAt: number | null
 }
 
 interface HistoryItem {
@@ -10,6 +14,8 @@ interface HistoryItem {
   status: string
   address: string
   reportCount: number
+  dispatchedAt: number | null
+  closedAt: number | null
   createdAt: number
 }
 
@@ -36,6 +42,23 @@ const hasMoreHistory = computed(() => props.history.length >= 3)
 
 function shouldShowAbsoluteDate(timestamp: number) {
   return Date.now() - timestamp >= THIRTY_DAYS_MS
+}
+
+function formatElapsedMs(ms: number | null) {
+  if (!ms || ms < 0)
+    return 'N/A'
+
+  const totalSeconds = Math.floor(ms / 1000)
+  const minutes = Math.floor(totalSeconds / 60)
+  const seconds = totalSeconds % 60
+  return `${minutes}m ${seconds}s`
+}
+
+function completionDuration(dispatchedAt: number | null, closedAt: number | null) {
+  if (!dispatchedAt || !closedAt)
+    return null
+
+  return closedAt - dispatchedAt
 }
 
 defineEmits<{
@@ -115,6 +138,12 @@ defineEmits<{
           <p class="text-xs text-muted mt-1">
             Reporters: {{ latestIncident.reportCount }}
           </p>
+          <p
+            v-if="latestIncident.status === INCIDENT_STATUS.COMPLETED"
+            class="text-xs text-muted mt-1"
+          >
+            BFP response time: {{ formatElapsedMs(completionDuration(latestIncident.dispatchedAt, latestIncident.closedAt)) }}
+          </p>
         </UCard>
 
         <UCard v-else>
@@ -151,6 +180,12 @@ defineEmits<{
               </p>
               <p class="text-xs text-muted/80 mt-1">
                 Reporters: {{ item.reportCount }}
+              </p>
+              <p
+                v-if="item.status === INCIDENT_STATUS.COMPLETED"
+                class="text-xs text-muted/80 mt-1"
+              >
+                BFP response time: {{ formatElapsedMs(completionDuration(item.dispatchedAt, item.closedAt)) }}
               </p>
               <p class="text-xs text-muted/80 mt-1">
                 <NuxtTime

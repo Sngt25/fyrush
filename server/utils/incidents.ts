@@ -35,6 +35,8 @@ export async function listRecentCitizenHistory(userId: string, limit = 10) {
       address: schema.incidents.address,
       status: schema.incidents.status,
       reportCount: schema.incidents.reportCount,
+      dispatchedAt: schema.incidents.dispatchedAt,
+      closedAt: schema.incidents.closedAt,
       createdAt: schema.incidents.createdAt,
       updatedAt: schema.incidents.updatedAt
     })

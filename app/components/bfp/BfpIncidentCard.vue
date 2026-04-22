@@ -74,11 +74,11 @@ function formatElapsedMs(ms: number | null) {
   return `${minutes}m ${seconds}s`
 }
 
-function incidentPerformance(incident: { timerStartedAt: number | null, closedAt: number | null }) {
-  if (!incident.timerStartedAt || !incident.closedAt)
+function incidentCompletionDuration(incident: { dispatchedAt: number | null, closedAt: number | null }) {
+  if (!incident.dispatchedAt || !incident.closedAt)
     return null
 
-  return incident.closedAt - incident.timerStartedAt
+  return incident.closedAt - incident.dispatchedAt
 }
 </script>
 
@@ -112,7 +112,9 @@ function incidentPerformance(incident: { timerStartedAt: number | null, closedAt
             :minute="timestampFormat.minute"
           />
         </p>
-        <p>Performance: {{ formatElapsedMs(incidentPerformance(incident)) }}</p>
+        <p v-if="incident.status === INCIDENT_STATUS.COMPLETED">
+          BFP response time: {{ formatElapsedMs(incidentCompletionDuration(incident)) }}
+        </p>
         <p v-if="incident.hasManualPinnedReport">
           Manual pin: {{ incident.latitude.toFixed(5) }}, {{ incident.longitude.toFixed(5) }}
         </p>

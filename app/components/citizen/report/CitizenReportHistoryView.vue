@@ -1,9 +1,13 @@
 <script setup lang="ts">
+import { INCIDENT_STATUS } from '#shared/fyrush'
+
 interface HistoryItem {
   id: string
   status: string
   address: string
   reportCount: number
+  dispatchedAt: number | null
+  closedAt: number | null
   createdAt: number
 }
 
@@ -63,6 +67,23 @@ function goToPreviousPage() {
 function goToNextPage() {
   page.value = Math.min(totalPages.value, page.value + 1)
 }
+
+function formatElapsedMs(ms: number | null) {
+  if (!ms || ms < 0)
+    return 'N/A'
+
+  const totalSeconds = Math.floor(ms / 1000)
+  const minutes = Math.floor(totalSeconds / 60)
+  const seconds = totalSeconds % 60
+  return `${minutes}m ${seconds}s`
+}
+
+function completionDuration(dispatchedAt: number | null, closedAt: number | null) {
+  if (!dispatchedAt || !closedAt)
+    return null
+
+  return closedAt - dispatchedAt
+}
 </script>
 
 <template>
@@ -102,6 +123,12 @@ function goToNextPage() {
                 </p>
                 <p class="text-xs text-muted/80">
                   Reporters: {{ item.reportCount }}
+                </p>
+                <p
+                  v-if="item.status === INCIDENT_STATUS.COMPLETED"
+                  class="text-xs text-muted/80"
+                >
+                  BFP response time: {{ formatElapsedMs(completionDuration(item.dispatchedAt, item.closedAt)) }}
                 </p>
               </div>
               <span class="text-xs text-muted whitespace-nowrap">
