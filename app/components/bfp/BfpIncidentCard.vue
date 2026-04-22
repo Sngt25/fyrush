@@ -30,6 +30,14 @@ const emit = defineEmits<{
 
 const mapOpen = ref(false)
 
+const timestampFormat = {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+  hour: 'numeric',
+  minute: '2-digit'
+} as const
+
 const timelineItems = computed(() => {
   const items: Array<{ label: string, at: number | null }> = [
     { label: 'Reported', at: props.incident.createdAt },
@@ -72,13 +80,6 @@ function incidentPerformance(incident: { timerStartedAt: number | null, closedAt
 
   return incident.closedAt - incident.timerStartedAt
 }
-
-function formatTimestamp(value: number | null) {
-  if (!value)
-    return 'Pending'
-
-  return new Date(value).toLocaleString()
-}
 </script>
 
 <template>
@@ -100,7 +101,17 @@ function formatTimestamp(value: number | null) {
     <div class="space-y-3 text-sm">
       <div class="grid gap-2 sm:grid-cols-2">
         <p>Reports: {{ incident.reportCount }}</p>
-        <p>Created: {{ new Date(incident.createdAt).toLocaleString() }}</p>
+        <p>
+          Created:
+          <NuxtTime
+            :datetime="new Date(incident.createdAt)"
+            :year="timestampFormat.year"
+            :month="timestampFormat.month"
+            :day="timestampFormat.day"
+            :hour="timestampFormat.hour"
+            :minute="timestampFormat.minute"
+          />
+        </p>
         <p>Performance: {{ formatElapsedMs(incidentPerformance(incident)) }}</p>
         <p v-if="incident.hasManualPinnedReport">
           Manual pin: {{ incident.latitude.toFixed(5) }}, {{ incident.longitude.toFixed(5) }}
@@ -117,8 +128,18 @@ function formatTimestamp(value: number | null) {
             :key="item.label"
             class="text-xs"
           >
-            <span class="font-semibold">{{ item.label }}:</span>
-            {{ formatTimestamp(item.at) }}
+            <span class="font-semibold">{{ item.label }}: </span>
+            <span v-if="item.at">
+              <NuxtTime
+                :datetime="new Date(item.at)"
+                :year="timestampFormat.year"
+                :month="timestampFormat.month"
+                :day="timestampFormat.day"
+                :hour="timestampFormat.hour"
+                :minute="timestampFormat.minute"
+              />
+            </span>
+            <span v-else>Pending</span>
           </p>
         </div>
       </div>

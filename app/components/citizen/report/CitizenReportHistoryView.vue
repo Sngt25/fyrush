@@ -17,13 +17,15 @@ const props = withDefaults(defineProps<{
 
 const page = ref(1)
 
-const historyFormatter = new Intl.DateTimeFormat('en-PH', {
+const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000
+
+const absoluteDateFormat = {
   month: 'short',
   day: 'numeric',
   year: 'numeric',
   hour: 'numeric',
   minute: '2-digit'
-})
+} as const
 
 const totalPages = computed(() => {
   if (props.history.length === 0)
@@ -49,8 +51,8 @@ watch(() => props.history.length, () => {
     page.value = totalPages.value
 })
 
-function formatHistoryDate(timestamp: number) {
-  return historyFormatter.format(new Date(timestamp))
+function shouldShowAbsoluteDate(timestamp: number) {
+  return Date.now() - timestamp >= THIRTY_DAYS_MS
 }
 
 function goToPreviousPage() {
@@ -99,7 +101,20 @@ function goToNextPage() {
                 </p>
               </div>
               <span class="text-xs text-muted whitespace-nowrap">
-                {{ formatHistoryDate(item.createdAt) }}
+                <NuxtTime
+                  v-if="shouldShowAbsoluteDate(item.createdAt)"
+                  :datetime="new Date(item.createdAt)"
+                  :year="absoluteDateFormat.year"
+                  :month="absoluteDateFormat.month"
+                  :day="absoluteDateFormat.day"
+                  :hour="absoluteDateFormat.hour"
+                  :minute="absoluteDateFormat.minute"
+                />
+                <NuxtTime
+                  v-else
+                  :datetime="new Date(item.createdAt)"
+                  relative
+                />
               </span>
             </div>
           </li>

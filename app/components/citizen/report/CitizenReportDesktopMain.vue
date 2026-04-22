@@ -20,18 +20,20 @@ const props = defineProps<{
   statusMessage: string
 }>()
 
-const historyFormatter = new Intl.DateTimeFormat('en-PH', {
+const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000
+
+const absoluteDateFormat = {
   month: 'short',
   day: 'numeric',
   year: 'numeric',
   hour: 'numeric',
   minute: '2-digit'
-})
+} as const
 
 const hasMoreHistory = computed(() => props.history.length >= 3)
 
-function formatHistoryDate(timestamp: number) {
-  return historyFormatter.format(new Date(timestamp))
+function shouldShowAbsoluteDate(timestamp: number) {
+  return Date.now() - timestamp >= THIRTY_DAYS_MS
 }
 
 defineEmits<{
@@ -143,7 +145,20 @@ defineEmits<{
                 {{ item.address }}
               </p>
               <p class="text-xs text-muted/80 mt-1">
-                {{ formatHistoryDate(item.createdAt) }}
+                <NuxtTime
+                  v-if="shouldShowAbsoluteDate(item.createdAt)"
+                  :datetime="new Date(item.createdAt)"
+                  :year="absoluteDateFormat.year"
+                  :month="absoluteDateFormat.month"
+                  :day="absoluteDateFormat.day"
+                  :hour="absoluteDateFormat.hour"
+                  :minute="absoluteDateFormat.minute"
+                />
+                <NuxtTime
+                  v-else
+                  :datetime="new Date(item.createdAt)"
+                  relative
+                />
               </p>
             </li>
           </ul>
