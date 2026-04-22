@@ -34,6 +34,7 @@ export async function listRecentCitizenHistory(userId: string, limit = 10) {
       longitude: schema.incidents.longitude,
       address: schema.incidents.address,
       status: schema.incidents.status,
+      reportCount: schema.incidents.reportCount,
       createdAt: schema.incidents.createdAt,
       updatedAt: schema.incidents.updatedAt
     })

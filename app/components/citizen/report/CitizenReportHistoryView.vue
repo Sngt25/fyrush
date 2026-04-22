@@ -3,6 +3,7 @@ interface HistoryItem {
   id: string
   status: string
   address: string
+  reportCount: number
   createdAt: number
 }
 
@@ -98,6 +99,9 @@ function goToNextPage() {
                 </p>
                 <p class="text-muted wrap-break-word">
                   {{ item.address }}
+                </p>
+                <p class="text-xs text-muted/80">
+                  Reporters: {{ item.reportCount }}
                 </p>
               </div>
               <span class="text-xs text-muted whitespace-nowrap">

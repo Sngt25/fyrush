@@ -188,22 +188,12 @@ function incidentPerformance(incident: { timerStartedAt: number | null, closedAt
         View Map
       </UButton>
 
-      <div
-        v-if="showReportingUsers && incident.reportingUsers?.length"
-        class="pt-1"
+      <p
+        v-if="showReportingUsers"
+        class="text-xs text-muted"
       >
-        <p class="font-semibold text-xs text-muted">
-          Reporting Users
-        </p>
-        <ul class="text-xs list-disc pl-4">
-          <li
-            v-for="reporter in incident.reportingUsers"
-            :key="reporter.userId + incident.id"
-          >
-            {{ reporter.userName }}
-          </li>
-        </ul>
-      </div>
+        Reporters: {{ incident.reportingUsers?.length ?? incident.reportCount }}
+      </p>
     </div>
 
     <UModal

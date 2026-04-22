@@ -2,12 +2,14 @@
 interface IncidentCard {
   status: string
   address: string
+  reportCount: number
 }
 
 interface HistoryItem {
   id: string
   status: string
   address: string
+  reportCount: number
   createdAt: number
 }
 
@@ -117,6 +119,9 @@ defineEmits<{
             <p class="text-sm text-white/85">
               {{ latestIncident.address }}
             </p>
+            <p class="text-xs text-white/75 mt-1">
+              Reporters: {{ latestIncident.reportCount }}
+            </p>
           </div>
         </div>
       </UCard>
@@ -139,6 +144,9 @@ defineEmits<{
             </p>
             <p class="text-muted">
               {{ item.address }}
+            </p>
+            <p class="text-xs text-muted/80 mt-1">
+              Reporters: {{ item.reportCount }}
             </p>
             <p class="text-xs text-muted/80 mt-1">
               <NuxtTime
