@@ -3,7 +3,7 @@ const useLocalHubDb = process.env.NODE_ENV !== 'production' && process.env.NUXT_
 
 export default defineNuxtConfig({
 
-  modules: ['@nuxt/eslint', '@nuxt/ui', '@nuxt/image', '@nuxthub/core', '@vite-pwa/nuxt', '@nuxtjs/leaflet', 'nuxt-google-auth'],
+  modules: ['@nuxt/eslint', '@nuxt/ui', '@nuxt/image', '@nuxthub/core', '@vite-pwa/nuxt', '@nuxtjs/leaflet', 'nuxt-auth-utils'],
   devtools: {
     enabled: true
   },
@@ -12,6 +12,12 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     bfpEmail: process.env.BFP_EMAIL,
+    oauth: {
+      google: {
+        clientId: process.env.NUXT_OAUTH_GOOGLE_CLIENT_ID || process.env.NUXT_PUBLIC_GOOGLE_AUTH_CLIENT_ID || process.env.NUXT_PUBLIC_GOOGLE_CLIENT_ID,
+        clientSecret: process.env.NUXT_OAUTH_GOOGLE_CLIENT_SECRET
+      }
+    },
     webPushPrivateKey: process.env.NUXT_WEB_PUSH_PRIVATE_KEY || '',
     webPushSubject: process.env.NUXT_WEB_PUSH_SUBJECT || '',
     public: {
@@ -56,14 +62,6 @@ export default defineNuxtConfig({
         braceStyle: '1tbs'
       }
     }
-  },
-
-  googleAuth: {
-    clientId: process.env.NUXT_PUBLIC_GOOGLE_CLIENT_ID,
-    autoLoadScript: false,
-    promptOneTap: false,
-    enableServerVerify: true,
-    useFedCMForPrompt: true
   },
 
   pwa: {

@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm'
 import { db, schema } from 'hub:db'
 import { USER_ROLE } from '#shared/fyrush'
-import { createPasswordHash, normalizeEmail, requireCompleteUser } from '../../utils/auth'
+import { normalizeEmail, requireCompleteUser } from '../../utils/auth'
 
 export default defineEventHandler(async (event) => {
   await requireCompleteUser(event, [USER_ROLE.BFP])
@@ -58,7 +58,6 @@ export default defineEventHandler(async (event) => {
     profileCompletedAt: null,
     registeredLat: null,
     registeredLng: null,
-    passwordHash: await createPasswordHash(crypto.randomUUID()),
     createdAt: now
   }
 

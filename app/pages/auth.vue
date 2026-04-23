@@ -1,21 +1,23 @@
 <script setup lang="ts">
-const { googleLogin } = useAuthSession()
+const route = useRoute()
 
-type GoogleVerifiedPayload = {
-  ok: boolean
-  sub?: string
-  email?: string
-  name?: string
-  picture?: string
+function continueWithGoogle() {
+  if (import.meta.client)
+    window.location.assign('/auth/google')
 }
 
-const onVerified = async (data: GoogleVerifiedPayload) => {
-  if (!data.ok)
-    return
+const oauthErrorMessage = computed(() => {
+  if (route.query.error === 'google_oauth_failed') {
+    const reason = typeof route.query.reason === 'string' ? route.query.reason : ''
 
-  const response = await googleLogin(data)
-  await navigateTo(response.nextPath)
-}
+    if (reason)
+      return `Google sign-in failed: ${reason}`
+
+    return 'Google sign-in failed. Please try again.'
+  }
+
+  return null
+})
 </script>
 
 <template>
@@ -41,6 +43,14 @@ const onVerified = async (data: GoogleVerifiedPayload) => {
 
         <div class="space-y-4">
           <UAlert
+            v-if="oauthErrorMessage"
+            color="error"
+            variant="subtle"
+            icon="i-lucide-triangle-alert"
+            :description="oauthErrorMessage"
+          />
+
+          <UAlert
             color="neutral"
             variant="subtle"
             icon="i-lucide-shield-check"
@@ -49,17 +59,16 @@ const onVerified = async (data: GoogleVerifiedPayload) => {
           />
 
           <div class="flex justify-center">
-            <ClientOnly>
-              <GoogleLoginButton
-                :verify-on-server="true"
-                :options="{ theme: 'filled_blue', size: 'large' }"
-                @verified="onVerified"
-              />
-
-              <template #fallback>
-                <USkeleton class="h-11 w-full" />
-              </template>
-            </ClientOnly>
+            <UButton
+              icon="i-simple-icons-google"
+              color="neutral"
+              variant="solid"
+              size="lg"
+              block
+              @click="continueWithGoogle"
+            >
+              Continue with Google
+            </UButton>
           </div>
 
           <p class="text-xs text-muted text-center">

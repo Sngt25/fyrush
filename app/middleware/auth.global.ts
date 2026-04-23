@@ -34,18 +34,15 @@ export default defineNuxtRouteMiddleware(async (to) => {
   const { user, refreshUser } = useAuthSession()
   const isPublicPath = PUBLIC_PATHS.has(normalizedPath)
 
-  if (isPublicPath && !user.value)
-    return
-
   let current = user.value
-  if ((isPublicPath && current) || !current)
+  if (isPublicPath || !current)
     current = await refreshUser().catch(() => null)
 
   if (!current) {
     if (isPublicPath)
       return
 
-    return redirectTo('/')
+    return redirectTo('/auth')
   }
 
   if (!current.profileComplete) {

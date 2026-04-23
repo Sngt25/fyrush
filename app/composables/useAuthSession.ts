@@ -1,47 +1,20 @@
 import type { AuthUser } from '#shared/fyrush'
 
-type GoogleVerifiedPayload = {
-  ok: boolean
-  sub?: string
-  email?: string
-  name?: string
-  picture?: string
-}
-
 export function useAuthSession() {
-  const userCookie = useCookie<AuthUser | null>('fyrush_user', {
-    default: () => null,
-    sameSite: 'lax',
-    secure: !import.meta.dev,
-    path: '/'
-  })
-
-  const user = useState<AuthUser | null>('fyrush-user', () => userCookie.value)
+  const user = useState<AuthUser | null>('fyrush-user', () => null)
   const loading = useState<boolean>('fyrush-user-loading', () => false)
-
-  watch(user, (value) => {
-    userCookie.value = value
-  }, { deep: false })
 
   async function refreshUser() {
     loading.value = true
 
     try {
-      const response = await $fetch<{ ok: boolean, user: AuthUser | null }>('/api/auth/me')
+      const requestFetch = import.meta.server ? useRequestFetch() : $fetch
+      const response = await requestFetch<{ ok: boolean, user: AuthUser | null }>('/api/auth/me')
       user.value = response.user
       return response.user
     } finally {
       loading.value = false
     }
-  }
-
-  async function googleLogin(verified: GoogleVerifiedPayload) {
-    const response = await $fetch<{ ok: boolean, user: AuthUser, nextPath: string }>('/api/auth/google/login', {
-      method: 'POST',
-      body: { verified }
-    })
-    user.value = response.user
-    return response
   }
 
   async function completeProfile(payload: { name: string, mobile: string, address: string }) {
@@ -62,7 +35,6 @@ export function useAuthSession() {
     user,
     loading,
     refreshUser,
-    googleLogin,
     completeProfile,
     logout
   }
