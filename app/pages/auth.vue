@@ -1,108 +1,20 @@
 <script setup lang="ts">
-const config = useRuntimeConfig()
-const pending = ref(false)
-const error = ref('')
-const { toMessage } = useAppError()
-const isGoogleReady = ref(false)
-let readyTimeoutId: number | null = null
-let readyPollId: number | null = null
-
-const googleClientId = computed(() => String(config.public.googleAuth?.clientId || config.public.googleClientId || '').trim())
-const hasGoogleClientId = computed(() => googleClientId.value.length > 0)
-
 const { googleLogin } = useAuthSession()
 
-interface GoogleAccountsIdApi {
-  disableAutoSelect?: () => void
+type GoogleVerifiedPayload = {
+  ok: boolean
+  sub?: string
+  email?: string
+  name?: string
+  picture?: string
 }
 
-function markGoogleReady() {
-  isGoogleReady.value = true
-
-  if (readyTimeoutId !== null) {
-    window.clearTimeout(readyTimeoutId)
-    readyTimeoutId = null
-  }
-
-  if (readyPollId !== null) {
-    window.clearInterval(readyPollId)
-    readyPollId = null
-  }
-}
-
-function onGoogleReadyEvent() {
-  markGoogleReady()
-}
-
-function hasGoogleGisReady() {
-  const googleApi = (window as Window & { google?: { accounts?: { id?: unknown } } }).google
-  return Boolean(googleApi?.accounts?.id)
-}
-
-function disableGoogleAutoSelect() {
-  const googleApi = (window as Window & { google?: { accounts?: { id?: GoogleAccountsIdApi } } }).google
-  googleApi?.accounts?.id?.disableAutoSelect?.()
-}
-
-onMounted(() => {
-  if (!hasGoogleClientId.value) {
-    error.value = 'Google Sign-In is not configured. Set NUXT_PUBLIC_GOOGLE_AUTH_CLIENT_ID (or NUXT_PUBLIC_GOOGLE_CLIENT_ID) in the deployed environment.'
+const onVerified = async (data: GoogleVerifiedPayload) => {
+  if (!data.ok)
     return
-  }
 
-  if (hasGoogleGisReady()) {
-    disableGoogleAutoSelect()
-    markGoogleReady()
-  }
-
-  window.addEventListener('nuxt-google-auth:ready', onGoogleReadyEvent)
-
-  // Fallback polling for environments where the ready event may fire before listener attach.
-  readyPollId = window.setInterval(() => {
-    if (hasGoogleGisReady()) {
-      disableGoogleAutoSelect()
-      markGoogleReady()
-    }
-  }, 250)
-
-  readyTimeoutId = window.setTimeout(() => {
-    if (!isGoogleReady.value) {
-      error.value = 'Google Sign-In is taking too long to load. Check Google OAuth authorized origins and browser blockers.'
-    }
-  }, 7000)
-})
-
-onBeforeUnmount(() => {
-  window.removeEventListener('nuxt-google-auth:ready', onGoogleReadyEvent)
-
-  if (readyTimeoutId !== null)
-    window.clearTimeout(readyTimeoutId)
-
-  if (readyPollId !== null)
-    window.clearInterval(readyPollId)
-})
-
-async function onGoogleSuccess(payload: { credential?: string }) {
-  if (!payload.credential) {
-    error.value = 'Google did not return a credential. Please try again.'
-    return
-  }
-
-  pending.value = true
-  error.value = ''
-
-  try {
-    const result = await googleLogin(payload.credential)
-    await navigateTo(result.nextPath)
-  } catch (err) {
-    error.value = toMessage(err, 'Unable to log in with Google.')
-  } finally {
-    pending.value = false
-  }
-}
-
-function onGoogleError(err: unknown) {
-  error.value = toMessage(err, 'Google sign-in failed.')
+  const response = await googleLogin(data)
+  await navigateTo(response.nextPath)
 }
 </script>
 
@@ -137,31 +49,23 @@ function onGoogleError(err: unknown) {
           />
 
           <div class="flex justify-center">
-            <ClientOnly v-if="hasGoogleClientId && isGoogleReady">
+            <ClientOnly>
               <GoogleLoginButton
-                :options="{ theme: 'filled_blue', size: 'large', text: 'continue_with', shape: 'pill', auto_select: false }"
-                @success="onGoogleSuccess"
-                @error="onGoogleError"
+                :verify-on-server="true"
+                :options="{ theme: 'filled_blue', size: 'large' }"
+                @verified="onVerified"
               />
-            </ClientOnly>
 
-            <USkeleton
-              v-if="hasGoogleClientId && !isGoogleReady"
-              class="h-11 w-75 rounded-full"
-            />
+              <template #fallback>
+                <USkeleton class="h-11 w-full" />
+              </template>
+            </ClientOnly>
           </div>
 
           <p class="text-xs text-muted text-center">
             Having trouble? Make sure pop-ups are allowed and try refreshing the page.
           </p>
         </div>
-
-        <p
-          v-if="error"
-          class="text-sm text-error mt-3 text-center"
-        >
-          {{ error }}
-        </p>
       </UCard>
     </UContainer>
   </div>

@@ -1,5 +1,4 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
-const resolvedGoogleClientId = process.env.NUXT_PUBLIC_GOOGLE_AUTH_CLIENT_ID || process.env.NUXT_PUBLIC_GOOGLE_CLIENT_ID || ''
 const useLocalHubDb = process.env.NODE_ENV !== 'production' && process.env.NUXT_HUB_USE_LOCAL_DB !== 'false'
 
 export default defineNuxtConfig({
@@ -16,13 +15,7 @@ export default defineNuxtConfig({
     webPushPrivateKey: process.env.NUXT_WEB_PUSH_PRIVATE_KEY || '',
     webPushSubject: process.env.NUXT_WEB_PUSH_SUBJECT || '',
     public: {
-      googleClientId: resolvedGoogleClientId,
       webPushPublicKey: process.env.NUXT_PUBLIC_WEB_PUSH_PUBLIC_KEY || '',
-      googleUseFedCMForPrompt: false,
-      googleAuth: {
-        clientId: resolvedGoogleClientId,
-        promptOneTap: false
-      },
       barangayCenter: [123.622003, 12.3717467]
     }
   },
@@ -66,10 +59,10 @@ export default defineNuxtConfig({
   },
 
   googleAuth: {
-    clientId: resolvedGoogleClientId,
+    clientId: process.env.NUXT_PUBLIC_GOOGLE_CLIENT_ID,
     autoLoadScript: true,
-    promptOneTap: false,
-    enableServerVerify: false
+    promptOneTap: true,
+    enableServerVerify: true
   },
 
   pwa: {
