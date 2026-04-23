@@ -28,7 +28,7 @@
     "drizzle-orm": "^0.45.2",
     "jose": "^6.2.2",
     "nuxt": "^4.4.2",
-    "nuxt-google-auth": "^0.1.7",
+    "nuxt-auth-utils": "^0.5.29",
     "tailwindcss": "^4.2.2",
     "unstorage": "^1.17.5"
   },

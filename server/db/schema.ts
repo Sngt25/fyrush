@@ -14,7 +14,6 @@ export const users = sqliteTable('users', {
   profileCompletedAt: integer('profile_completed_at'),
   registeredLat: real('registered_lat'),
   registeredLng: real('registered_lng'),
-  passwordHash: text('password_hash').notNull(),
   createdAt: integer('created_at').notNull()
 })
 
