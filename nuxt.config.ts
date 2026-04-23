@@ -60,7 +60,7 @@ export default defineNuxtConfig({
 
   googleAuth: {
     clientId: process.env.NUXT_PUBLIC_GOOGLE_CLIENT_ID,
-    autoLoadScript: true,
+    autoLoadScript: false,
     promptOneTap: false,
     enableServerVerify: true,
     useFedCMForPrompt: true
