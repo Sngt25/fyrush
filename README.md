@@ -41,7 +41,16 @@ Set these environment variables before running the app:
 NUXT_PUBLIC_GOOGLE_AUTH_CLIENT_ID=your-client-id.apps.googleusercontent.com
 # Backward-compatible fallback also supported:
 # NUXT_PUBLIC_GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+NUXT_OAUTH_GOOGLE_CLIENT_SECRET=your-google-client-secret
 BFP_EMAIL=firestation@example.com
+
+# Required for encrypted auth sessions (minimum 32 chars).
+# Example: openssl rand -hex 32
+NUXT_SESSION_PASSWORD=replace-with-a-long-random-secret
+
+# Optional: set this if you authenticate on one subdomain and serve app on another.
+# Example: .example.com
+# NUXT_SESSION_COOKIE_DOMAIN=
 
 # Web Push (required for background notifications while app/browser is closed)
 # Public key is exposed to the client app.

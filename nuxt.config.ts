@@ -11,6 +11,16 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
 
   runtimeConfig: {
+    session: {
+      password: process.env.NUXT_SESSION_PASSWORD || '',
+      cookie: {
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production',
+        httpOnly: true,
+        path: '/',
+        domain: process.env.NUXT_SESSION_COOKIE_DOMAIN || undefined
+      }
+    },
     bfpEmail: process.env.BFP_EMAIL,
     oauth: {
       google: {
