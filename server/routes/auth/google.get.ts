@@ -4,11 +4,23 @@ import { USER_ROLE, type UserRole } from '#shared/fyrush'
 import { db, schema } from 'hub:db'
 import { normalizeEmail, toAuthUser, createSession } from '../../utils/auth'
 
-function pickRole(email: string, bfpEmail: string | undefined): UserRole {
+function parseBfpEmails(bfpEmail: string | undefined) {
   if (!bfpEmail)
+    return []
+
+  return bfpEmail
+    .split(',')
+    .map(value => normalizeEmail(value))
+    .filter(Boolean)
+}
+
+function pickRole(email: string, bfpEmail: string | undefined): UserRole {
+  const bfpEmails = parseBfpEmails(bfpEmail)
+
+  if (!bfpEmails.length)
     return USER_ROLE.CITIZEN
 
-  return normalizeEmail(bfpEmail) === email ? USER_ROLE.BFP : USER_ROLE.CITIZEN
+  return bfpEmails.includes(email) ? USER_ROLE.BFP : USER_ROLE.CITIZEN
 }
 
 function nextPathForRole(role: UserRole, profileComplete: boolean) {

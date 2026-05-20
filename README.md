@@ -42,7 +42,7 @@ NUXT_PUBLIC_GOOGLE_AUTH_CLIENT_ID=your-client-id.apps.googleusercontent.com
 # Backward-compatible fallback also supported:
 # NUXT_PUBLIC_GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
 NUXT_OAUTH_GOOGLE_CLIENT_SECRET=your-google-client-secret
-BFP_EMAIL=firestation@example.com
+BFP_EMAIL=firestation@example.com,firechief@example.com
 
 # Required for encrypted auth sessions (minimum 32 chars).
 # Example: openssl rand -hex 32
