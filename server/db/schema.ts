@@ -22,6 +22,7 @@ export const incidents = sqliteTable('incidents', {
   latitude: real('latitude').notNull(),
   longitude: real('longitude').notNull(),
   address: text('address').notNull(),
+  description: text('description'),
   status: text('status').notNull(),
   reportCount: integer('report_count').notNull().default(1),
   createdByUserId: text('created_by_user_id').notNull(),

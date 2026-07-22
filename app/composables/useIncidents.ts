@@ -8,7 +8,7 @@ interface IncidentResponse extends IncidentFeedItem {
 
 export function useIncidents() {
   const incidents = useState<IncidentResponse[]>('fyrush-incidents', () => [])
-  const history = useState<Array<{ id: string, address: string, status: string, reportCount: number, dispatchedAt: number | null, closedAt: number | null, createdAt: number }>>('fyrush-history', () => [])
+  const history = useState<Array<{ id: string, address: string, description: string | null, status: string, reportCount: number, dispatchedAt: number | null, closedAt: number | null, createdAt: number }>>('fyrush-history', () => [])
 
   async function fetchIncidents() {
     const response = await $fetch<{ ok: boolean, incidents: IncidentResponse[] }>('/api/incidents')
@@ -17,12 +17,12 @@ export function useIncidents() {
   }
 
   async function fetchHistory() {
-    const response = await $fetch<{ ok: boolean, history: Array<{ id: string, address: string, status: string, reportCount: number, dispatchedAt: number | null, closedAt: number | null, createdAt: number }> }>('/api/incidents/history')
+    const response = await $fetch<{ ok: boolean, history: Array<{ id: string, address: string, description: string | null, status: string, reportCount: number, dispatchedAt: number | null, closedAt: number | null, createdAt: number }> }>('/api/incidents/history')
     history.value = response.history
     return response.history
   }
 
-  async function reportIncident(payload: { useRegistered: boolean, latitude?: number, longitude?: number, address?: string }) {
+  async function reportIncident(payload: { useRegistered: boolean, latitude?: number, longitude?: number, address?: string, description?: string }) {
     const response = await $fetch<{ ok: boolean, incident: IncidentResponse | null, alreadyReported: boolean }>('/api/incidents/report', {
       method: 'POST',
       body: payload

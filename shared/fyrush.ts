@@ -41,6 +41,7 @@ export interface IncidentFeedItem {
   latitude: number
   longitude: number
   address: string
+  description: string | null
   status: IncidentStatus
   reportCount: number
   createdByUserId: string

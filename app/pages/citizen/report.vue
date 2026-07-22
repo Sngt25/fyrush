@@ -20,6 +20,7 @@ const mapDialogOpen = ref(false)
 const useSetLocation = ref(true)
 const pending = ref(false)
 const manualMarker = ref<[number, number]>([BARANGAY_KALIPAY_CENTER.lng, BARANGAY_KALIPAY_CENTER.lat])
+const description = ref('')
 const statusMessage = ref('Checking your session...')
 
 const activeTab = computed<'dashboard' | 'history'>(() =>
@@ -311,13 +312,14 @@ async function submitReport() {
     let result
 
     if (useSetLocation.value) {
-      result = await reportIncident({ useRegistered: true })
+      result = await reportIncident({ useRegistered: true, description: description.value || undefined })
     } else {
       result = await reportIncident({
         useRegistered: false,
         longitude: manualMarker.value[0],
         latitude: manualMarker.value[1],
-        address: 'Manually pinned location'
+        address: 'Manually pinned location',
+        description: description.value || undefined
       })
     }
 
@@ -333,6 +335,7 @@ async function submitReport() {
     }
 
     statusMessage.value = 'Fire report submitted successfully.'
+    description.value = ''
     await fetchHistory()
   } catch (err) {
     statusMessage.value = toMessage(err, 'Report submission failed.')
@@ -379,6 +382,7 @@ async function signOut() {
 
       <CitizenReportMobileMain
         v-if="activeTab === 'dashboard'"
+        v-model:description="description"
         :location-label="locationLabel"
         :location-detail="locationDetail"
         :pending="pending"
@@ -434,6 +438,7 @@ async function signOut() {
 
       <CitizenReportDesktopMain
         v-if="activeTab === 'dashboard'"
+        v-model:description="description"
         :location-label="locationLabel"
         :location-detail="locationDetail"
         :pending="pending"

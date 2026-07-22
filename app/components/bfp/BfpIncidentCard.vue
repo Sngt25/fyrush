@@ -99,6 +99,12 @@ function incidentCompletionDuration(incident: { dispatchedAt: number | null, clo
     </template>
 
     <div class="space-y-3 text-sm">
+      <p
+        v-if="incident.description"
+        class="text-muted text-xs italic"
+      >
+        {{ incident.description }}
+      </p>
       <div class="grid gap-2 sm:grid-cols-2">
         <p>Reports: {{ incident.reportCount }}</p>
         <p>

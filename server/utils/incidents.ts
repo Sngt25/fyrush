@@ -33,6 +33,7 @@ export async function listRecentCitizenHistory(userId: string, limit = 10) {
       latitude: schema.incidents.latitude,
       longitude: schema.incidents.longitude,
       address: schema.incidents.address,
+      description: schema.incidents.description,
       status: schema.incidents.status,
       reportCount: schema.incidents.reportCount,
       dispatchedAt: schema.incidents.dispatchedAt,
@@ -52,6 +53,7 @@ export async function createIncidentReport(input: {
   latitude: number
   longitude: number
   address: string
+  description?: string | null
   source: 'registered' | 'manual'
   autoValidate?: boolean
 }) {
@@ -130,6 +132,7 @@ export async function createIncidentReport(input: {
       latitude: input.latitude,
       longitude: input.longitude,
       address: input.address,
+      description: input.description ?? null,
       status: input.autoValidate ? INCIDENT_STATUS.VALIDATED : INCIDENT_STATUS.NEW,
       reportCount: 1,
       createdByUserId: input.userId,

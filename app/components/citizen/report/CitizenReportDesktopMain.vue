@@ -4,6 +4,7 @@ import { INCIDENT_STATUS } from '#shared/fyrush'
 interface IncidentCard {
   status: string
   address: string
+  description: string | null
   reportCount: number
   dispatchedAt: number | null
   closedAt: number | null
@@ -13,6 +14,7 @@ interface HistoryItem {
   id: string
   status: string
   address: string
+  description: string | null
   reportCount: number
   dispatchedAt: number | null
   closedAt: number | null
@@ -26,6 +28,14 @@ const props = defineProps<{
   latestIncident: IncidentCard | null
   history: HistoryItem[]
   statusMessage: string
+  description: string
+}>()
+
+const emit = defineEmits<{
+  'update:description': [value: string]
+  openSubmit: []
+  openMap: []
+  openHistory: []
 }>()
 
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000
@@ -60,12 +70,6 @@ function completionDuration(dispatchedAt: number | null, closedAt: number | null
 
   return closedAt - dispatchedAt
 }
-
-defineEmits<{
-  openSubmit: []
-  openMap: []
-  openHistory: []
-}>()
 </script>
 
 <template>
@@ -104,6 +108,12 @@ defineEmits<{
             <p class="text-sm text-muted">
               Emergency Action
             </p>
+            <UInput
+              :model-value="description"
+              placeholder="Landmark / description (optional)"
+              icon="i-lucide-pencil"
+              @update:model-value="$emit('update:description', $event)"
+            />
             <div class="flex justify-center pt-2">
               <CitizenReportTriggerButton
                 :pending="pending"
@@ -134,6 +144,12 @@ defineEmits<{
           </p>
           <p class="text-sm mt-1">
             {{ latestIncident.address }}
+          </p>
+          <p
+            v-if="latestIncident.description"
+            class="text-xs text-muted mt-1"
+          >
+            {{ latestIncident.description }}
           </p>
           <p class="text-xs text-muted mt-1">
             Reporters: {{ latestIncident.reportCount }}
@@ -177,6 +193,12 @@ defineEmits<{
               </p>
               <p class="text-muted">
                 {{ item.address }}
+              </p>
+              <p
+                v-if="item.description"
+                class="text-xs text-muted/80 mt-1"
+              >
+                DD{{ item.description }}
               </p>
               <p class="text-xs text-muted/80 mt-1">
                 Reporters: {{ item.reportCount }}

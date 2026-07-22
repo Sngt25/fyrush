@@ -5,6 +5,7 @@ interface HistoryItem {
   id: string
   status: string
   address: string
+  description: string | null
   reportCount: number
   dispatchedAt: number | null
   closedAt: number | null
@@ -120,6 +121,12 @@ function completionDuration(dispatchedAt: number | null, closedAt: number | null
                 </p>
                 <p class="text-muted wrap-break-word">
                   {{ item.address }}
+                </p>
+                <p
+                  v-if="item.description"
+                  class="text-xs text-muted/80"
+                >
+                  {{ item.description }}
                 </p>
                 <p class="text-xs text-muted/80">
                   Reporters: {{ item.reportCount }}

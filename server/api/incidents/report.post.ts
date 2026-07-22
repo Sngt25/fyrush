@@ -11,6 +11,7 @@ export default defineEventHandler(async (event) => {
     latitude?: number
     longitude?: number
     address?: string
+    description?: string
   }>(event)
 
   const useRegistered = body.useRegistered !== false
@@ -26,11 +27,14 @@ export default defineEventHandler(async (event) => {
 
   const address = body.address?.trim() || (useRegistered ? 'Barangay Kalipay set location' : 'Pinned fire location') || 'Unknown location'
 
+  const description = body.description?.trim() || null
+
   const result = await createIncidentReport({
     userId: user.id,
     latitude,
     longitude,
     address,
+    description,
     source: useRegistered ? 'registered' : 'manual',
     autoValidate: user.role === USER_ROLE.POINT_PERSON
   })
