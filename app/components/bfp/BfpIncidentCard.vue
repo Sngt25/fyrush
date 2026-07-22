@@ -5,6 +5,7 @@ const props = withDefaults(defineProps<{
   incident: {
     id: string
     address: string
+    description: string | null
     status: string
     reportCount: number
     createdAt: number
