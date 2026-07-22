@@ -28,11 +28,9 @@ const props = defineProps<{
   latestIncident: IncidentCard | null
   history: HistoryItem[]
   statusMessage: string
-  description: string
 }>()
 
-const emit = defineEmits<{
-  'update:description': [value: string]
+defineEmits<{
   openSubmit: []
   openLocationPrompt: []
   openMap: []
@@ -91,13 +89,6 @@ function completionDuration(dispatchedAt: number | null, closedAt: number | null
         </div>
       </div>
     </div>
-
-    <UInput
-      :model-value="description"
-      placeholder="Landmark / description (optional)"
-      icon="i-lucide-pencil"
-      @update:model-value="$emit('update:description', $event)"
-    />
 
     <div class="flex justify-center pt-2">
       <CitizenReportTriggerButton

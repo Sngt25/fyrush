@@ -28,11 +28,9 @@ const props = defineProps<{
   latestIncident: IncidentCard | null
   history: HistoryItem[]
   statusMessage: string
-  description: string
 }>()
 
-const emit = defineEmits<{
-  'update:description': [value: string]
+defineEmits<{
   openSubmit: []
   openMap: []
   openHistory: []
@@ -108,12 +106,6 @@ function completionDuration(dispatchedAt: number | null, closedAt: number | null
             <p class="text-sm text-muted">
               Emergency Action
             </p>
-            <UInput
-              :model-value="description"
-              placeholder="Landmark / description (optional)"
-              icon="i-lucide-pencil"
-              @update:model-value="$emit('update:description', $event)"
-            />
             <div class="flex justify-center pt-2">
               <CitizenReportTriggerButton
                 :pending="pending"
@@ -198,7 +190,7 @@ function completionDuration(dispatchedAt: number | null, closedAt: number | null
                 v-if="item.description"
                 class="text-xs text-muted/80 mt-1"
               >
-                DD{{ item.description }}
+                D                {{ item.description }}
               </p>
               <p class="text-xs text-muted/80 mt-1">
                 Reporters: {{ item.reportCount }}

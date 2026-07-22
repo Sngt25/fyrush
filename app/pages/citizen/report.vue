@@ -382,7 +382,6 @@ async function signOut() {
 
       <CitizenReportMobileMain
         v-if="activeTab === 'dashboard'"
-        v-model:description="description"
         :location-label="locationLabel"
         :location-detail="locationDetail"
         :pending="pending"
@@ -438,7 +437,6 @@ async function signOut() {
 
       <CitizenReportDesktopMain
         v-if="activeTab === 'dashboard'"
-        v-model:description="description"
         :location-label="locationLabel"
         :location-detail="locationDetail"
         :pending="pending"
@@ -468,6 +466,7 @@ async function signOut() {
       v-model:location-prompt-open="locationPromptOpen"
       v-model:map-dialog-open="mapDialogOpen"
       v-model:manual-marker="manualMarker"
+      v-model:description="description"
       :use-set-location="useSetLocation"
       :set-location-point="setLocationPoint"
       :bfp-shared-points="bfpSharedPoints"

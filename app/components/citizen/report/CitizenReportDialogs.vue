@@ -5,6 +5,7 @@ const props = defineProps<{
   useSetLocation: boolean
   manualMarker: [number, number]
   setLocationPoint: [number, number]
+  description: string
   bfpSharedPoints: Array<{
     incidentId: string
     latitude: number
@@ -23,6 +24,7 @@ const emit = defineEmits<{
   'update:locationPromptOpen': [value: boolean]
   'update:mapDialogOpen': [value: boolean]
   'update:manualMarker': [value: [number, number]]
+  'update:description': [value: string]
   'chooseManualLocation': []
   'confirmSetLocation': []
   'confirmManualLocation': []
@@ -77,6 +79,13 @@ function useSetLocationFromMap() {
       <p class="text-sm text-muted">
         Set location: Barangay Kalipay. Choose Yes to report quickly, or No to pin the exact map point.
       </p>
+      <UInput
+        :model-value="description"
+        placeholder="Landmark / description (optional)"
+        icon="i-lucide-pencil"
+        class="w-full"
+        @update:model-value="$emit('update:description', $event)"
+      />
     </template>
 
     <template #footer>
@@ -128,6 +137,13 @@ function useSetLocationFromMap() {
         :bfp-shared-points="bfpSharedPoints"
         :incident-pins="incidentPins"
         :map-height="mapFullscreen ? 'calc(100dvh - 12rem)' : '24rem'"
+      />
+      <UInput
+        :model-value="description"
+        placeholder="Landmark / description (optional)"
+        icon="i-lucide-pencil"
+        class="w-full"
+        @update:model-value="$emit('update:description', $event)"
       />
     </template>
 
