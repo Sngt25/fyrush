@@ -190,7 +190,7 @@ function completionDuration(dispatchedAt: number | null, closedAt: number | null
                 v-if="item.description"
                 class="text-xs text-muted/80 mt-1"
               >
-                D                {{ item.description }}
+                { item.description }}
               </p>
               <p class="text-xs text-muted/80 mt-1">
                 Reporters: {{ item.reportCount }}
