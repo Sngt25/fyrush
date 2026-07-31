@@ -33,7 +33,29 @@ watch(payload, async (value) => {
   if (!value?.incidents)
     return
 
-  incidents.value = value.incidents as typeof incidents.value
+  const existing = new Map(incidents.value.map(item => [item.id, item]))
+  const staleReporting = value.incidents.some((item) => {
+    const known = existing.get(item.id)
+    return !known
+      || (item.reportCount > (known.reportingUsers?.length ?? 0))
+  })
+
+  incidents.value = value.incidents.map((item) => {
+    const known = existing.get(item.id)
+    if (!known)
+      return item
+
+    return {
+      ...item,
+      reportingUsers: known.reportingUsers,
+      hasManualPinnedReport: known.hasManualPinnedReport,
+      manualPinnedReportCount: known.manualPinnedReportCount
+    }
+  }) as typeof incidents.value
+
+  if (staleReporting)
+    await fetchIncidents()
+
   await notifyNewIncidents(value.incidents as typeof incidents.value)
 })
 

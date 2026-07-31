@@ -197,12 +197,32 @@ function incidentCompletionDuration(incident: { dispatchedAt: number | null, clo
         View Map
       </UButton>
 
-      <p
+      <div
         v-if="showReportingUsers"
-        class="text-xs text-muted"
+        class="rounded-xl border border-default bg-muted/40 p-3 space-y-1"
       >
-        Reporters: {{ incident.reportingUsers?.length ?? incident.reportCount }}
-      </p>
+        <p class="text-xs font-semibold text-muted uppercase tracking-wide">
+          Reporters ({{ incident.reportingUsers?.length ?? incident.reportCount }})
+        </p>
+        <p
+          v-if="incident.reportingUsers && incident.reportingUsers.length > 0"
+          class="text-xs"
+        >
+          <span
+            v-for="user in incident.reportingUsers"
+            :key="user.userId"
+            class="inline-flex items-center gap-1 rounded-full border border-default bg-muted px-2 py-0.5 mr-1 mb-1"
+          >
+            <span class="font-semibold">{{ user.userName }}</span>
+          </span>
+        </p>
+        <p
+          v-else
+          class="text-xs text-muted"
+        >
+          {{ incident.reportCount }} report{{ incident.reportCount === 1 ? '' : 's' }} (names unavailable)
+        </p>
+      </div>
     </div>
 
     <UModal
