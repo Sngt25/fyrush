@@ -98,7 +98,7 @@ function completionDuration(dispatchedAt: number | null, closedAt: number | null
     </div>
 
     <p class="text-center text-sm text-muted">
-      Tap to Send Alert
+      Tap 3 TIMES to send Alert
     </p>
 
     <div class="space-y-3">
