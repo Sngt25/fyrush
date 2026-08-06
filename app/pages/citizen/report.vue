@@ -295,6 +295,11 @@ async function handleSubscribeClick() {
   }
 }
 
+function vibrate(pattern: number | number[]) {
+  if (import.meta.client && typeof navigator !== 'undefined' && 'vibrate' in navigator)
+    navigator.vibrate(pattern)
+}
+
 async function submitReport() {
   if (alreadyReported.value) {
     toast.add({
@@ -336,6 +341,7 @@ async function submitReport() {
 
     statusMessage.value = 'Fire report submitted successfully.'
     description.value = ''
+    vibrate([120, 60, 120, 60, 240])
     await fetchHistory()
   } catch (err) {
     statusMessage.value = toMessage(err, 'Report submission failed.')
