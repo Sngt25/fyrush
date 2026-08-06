@@ -8,6 +8,7 @@ definePageMeta({
 const { incidents, fetchIncidents, updateIncidentStatus, updateResponderLocation } = useIncidents()
 const { payload, connect, disconnect } = useIncidentSocket()
 const { rememberIncidents, notifyNewIncidents } = useIncidentPwaNotifications()
+const { handleFeed: handleIncidentAlarmFeed, stopAll: stopAllAlarms } = useIncidentAlarm()
 const { toMessage } = useAppError()
 
 const actionError = ref('')
@@ -61,12 +62,16 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   stopAllLiveShares()
+  stopAllAlarms()
   disconnect()
 })
 
 watch(payload, async (value) => {
   if (!value?.incidents)
     return
+
+  const previousIncidents = incidents.value
+  handleIncidentAlarmFeed(previousIncidents, value.incidents)
 
   const existing = new Map(incidents.value.map(item => [item.id, item]))
   const staleReporting = value.incidents.some((item) => {
@@ -187,6 +192,7 @@ async function runAction(incidentId: string, action: 'validate' | 'invalidate' |
       stopLiveShare(incidentId)
 
     await fetchSummary()
+    handleIncidentAlarmFeed(incidents.value, incidents.value)
   } catch (err) {
     actionError.value = toMessage(err, 'Action failed.')
   }
