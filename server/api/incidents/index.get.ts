@@ -14,15 +14,16 @@ export default defineEventHandler(async (event) => {
         incidentId: schema.incidentReports.incidentId,
         userId: schema.incidentReports.userId,
         userName: schema.users.name,
+        userMobile: schema.users.mobile,
         userRole: schema.users.role,
         source: schema.incidentReports.source
       })
       .from(schema.incidentReports)
       .innerJoin(schema.users, eq(schema.incidentReports.userId, schema.users.id))
 
-    const grouped = reportsByIncident.reduce<Record<string, Array<{ userId: string, userName: string, userRole: string }>>>((acc, row) => {
+    const grouped = reportsByIncident.reduce<Record<string, Array<{ userId: string, userName: string, userMobile: string | null, userRole: string }>>>((acc, row) => {
       acc[row.incidentId] ||= []
-      acc[row.incidentId]!.push({ userId: row.userId, userName: row.userName, userRole: row.userRole })
+      acc[row.incidentId]!.push({ userId: row.userId, userName: row.userName, userMobile: row.userMobile, userRole: row.userRole })
       return acc
     }, {})
 
