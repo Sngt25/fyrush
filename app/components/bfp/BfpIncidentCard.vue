@@ -16,7 +16,7 @@ const props = withDefaults(defineProps<{
     closedAt: number | null
     invalidatedAt: number | null
     timerStartedAt: number | null
-    reportingUsers?: Array<{ userId: string, userName: string }>
+    reportingUsers?: Array<{ userId: string, userName: string, userMobile: string | null }>
     hasManualPinnedReport?: boolean
     manualPinnedReportCount?: number
   }
@@ -214,6 +214,10 @@ function incidentCompletionDuration(incident: { dispatchedAt: number | null, clo
             class="inline-flex items-center gap-1 rounded-full border border-default bg-muted px-2 py-0.5 mr-1 mb-1"
           >
             <span class="font-semibold">{{ user.userName }}</span>
+            <span
+              v-if="user.userMobile"
+              class="text-muted"
+            >{{ user.userMobile }}</span>
           </span>
         </p>
         <p

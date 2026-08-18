@@ -1,7 +1,7 @@
 import type { IncidentFeedItem } from '#shared/fyrush'
 
 interface IncidentResponse extends IncidentFeedItem {
-  reportingUsers?: Array<{ userId: string, userName: string, userRole?: string }>
+  reportingUsers?: Array<{ userId: string, userName: string, userMobile: string | null, userRole?: string }>
   hasManualPinnedReport?: boolean
   manualPinnedReportCount?: number
 }
