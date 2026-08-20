@@ -5,7 +5,7 @@ import { BARANGAY_KALIPAY_CENTER, INCIDENT_STATUS, type IncidentFeedItem } from 
 const route = useRoute()
 const toast = useToast()
 const { toMessage } = useAppError()
-const { logout } = useAuthSession()
+const { user, logout } = useAuthSession()
 const { incidents, history, fetchIncidents, fetchHistory, reportIncident } = useIncidents()
 const { payload, connect, disconnect } = useIncidentSocket()
 const { rememberIncidents, notifyNewIncidents } = useIncidentPwaNotifications()
@@ -27,7 +27,15 @@ const activeTab = computed<'dashboard' | 'history'>(() =>
   route.query.tab === 'history' ? 'history' : 'dashboard'
 )
 
-const setLocationPoint = computed<[number, number]>(() => [BARANGAY_KALIPAY_CENTER.lng, BARANGAY_KALIPAY_CENTER.lat])
+const setLocationPoint = computed<[number, number]>(() => {
+  const lat = user.value?.registeredLat
+  const lng = user.value?.registeredLng
+
+  return typeof lat === 'number' && typeof lng === 'number'
+    ? [lng, lat]
+    : [BARANGAY_KALIPAY_CENTER.lng, BARANGAY_KALIPAY_CENTER.lat]
+})
+const setLocationAddress = computed(() => user.value?.address?.trim() || 'Your set location')
 const latestIncident = computed(() => incidents.value[0] || null)
 const dashboardHistory = computed(() => history.value.slice(0, 3))
 const alreadyReported = computed(() =>
@@ -78,10 +86,16 @@ const bfpSharedPoints = computed(() => {
 })
 
 const locationLabel = computed(() =>
-  useSetLocation.value ? 'Location: Barangay Kalipay' : 'Location: Manual map pin'
+  useSetLocation.value ? `Location: ${setLocationAddress.value}` : 'Location: Manual map pin'
 )
 
 const notificationHelpVisible = computed(() => notificationPermission.value === 'denied')
+
+watch(user, (value) => {
+  if (typeof value?.registeredLat === 'number' && typeof value.registeredLng === 'number')
+    manualMarker.value = [value.registeredLng, value.registeredLat]
+}, { immediate: true })
+
 const pushNeedsSubscription = computed(() =>
   pushSubscriptionChecked.value
   && notificationPermission.value === 'granted'
@@ -94,7 +108,7 @@ let notificationBlockedToastTimer: ReturnType<typeof setTimeout> | null = null
 
 const locationDetail = computed(() =>
   useSetLocation.value
-    ? 'Set location active'
+    ? `${setLocationPoint.value[1].toFixed(5)}, ${setLocationPoint.value[0].toFixed(5)}`
     : `Pinned at ${manualMarker.value[1].toFixed(5)}, ${manualMarker.value[0].toFixed(5)}`
 )
 
@@ -475,6 +489,7 @@ async function signOut() {
       v-model:description="description"
       :use-set-location="useSetLocation"
       :set-location-point="setLocationPoint"
+      :set-location-address="setLocationAddress"
       :bfp-shared-points="bfpSharedPoints"
       :incident-pins="activeIncidentPins"
       @choose-manual-location="chooseManualLocation"

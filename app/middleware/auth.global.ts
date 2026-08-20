@@ -53,7 +53,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
   }
 
   if (normalizedPath === '/citizen/profile') {
-    if (current.role !== USER_ROLE.CITIZEN)
+    if (current.role !== USER_ROLE.CITIZEN && current.role !== USER_ROLE.POINT_PERSON && current.role !== USER_ROLE.BFP)
       return redirectTo(roleHome(current.role))
 
     return

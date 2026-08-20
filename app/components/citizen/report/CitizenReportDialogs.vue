@@ -5,6 +5,7 @@ const props = defineProps<{
   useSetLocation: boolean
   manualMarker: [number, number]
   setLocationPoint: [number, number]
+  setLocationAddress: string
   description: string
   bfpSharedPoints: Array<{
     incidentId: string
@@ -77,7 +78,7 @@ function useSetLocationFromMap() {
   >
     <template #body>
       <p class="text-sm text-muted">
-        Set location: Barangay Kalipay. Choose Yes to report quickly, or No to pin the exact map point.
+        Set location: {{ setLocationAddress }}. Choose Yes to report quickly, or No to pin the exact map point.
       </p>
       <UInput
         :model-value="description"

@@ -5,7 +5,7 @@ import { requireUser, toAuthUser } from '../../utils/auth'
 
 export default defineEventHandler(async (event) => {
   const user = await requireUser(event)
-  const body = await readBody<{ name?: string, mobile?: string, address?: string }>(event)
+  const body = await readBody<{ name?: string, mobile?: string, address?: string, registeredLat?: number, registeredLng?: number }>(event)
 
   const name = body.name?.trim()
   const mobile = body.mobile?.trim()
@@ -18,6 +18,18 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  const needsRegisteredPoint = user.role === USER_ROLE.CITIZEN || user.role === USER_ROLE.POINT_PERSON
+  const registeredLat = typeof body.registeredLat === 'number' ? body.registeredLat : user.registeredLat
+  const registeredLng = typeof body.registeredLng === 'number' ? body.registeredLng : user.registeredLng
+  const hasRegisteredPoint = typeof registeredLat === 'number' && typeof registeredLng === 'number'
+
+  if (needsRegisteredPoint && !hasRegisteredPoint) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Confirm your location on the map before continuing.'
+    })
+  }
+
   const now = Date.now()
 
   await db
@@ -26,7 +38,9 @@ export default defineEventHandler(async (event) => {
       name,
       mobile,
       address,
-      profileComplete: 1,
+      registeredLat: needsRegisteredPoint ? registeredLat : null,
+      registeredLng: needsRegisteredPoint ? registeredLng : null,
+      profileComplete: needsRegisteredPoint ? (hasRegisteredPoint ? 1 : 0) : 1,
       profileCompletedAt: now
     })
     .where(eq(schema.users.id, user.id))

@@ -17,7 +17,7 @@ export function useAuthSession() {
     }
   }
 
-  async function completeProfile(payload: { name: string, mobile: string, address: string }) {
+  async function completeProfile(payload: { name: string, mobile: string, address: string, registeredLat?: number | null, registeredLng?: number | null }) {
     const response = await $fetch<{ ok: boolean, user: AuthUser, nextPath: string }>('/api/auth/profile', {
       method: 'POST',
       body: payload
