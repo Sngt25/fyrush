@@ -67,6 +67,24 @@ body {
   animation: fyrushPulse 2.2s ease-in-out infinite;
 }
 
+.fyrush-report-ring-text {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  color: #fff;
+  pointer-events: none;
+}
+
+.fyrush-report-ring-text text {
+  font-family: "Sora", "Segoe UI", sans-serif;
+  font-size: 15.5px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  fill: currentColor;
+  text-transform: uppercase;
+}
+
 .fyrush-report-core {
   width: 16rem;
   height: 16rem;

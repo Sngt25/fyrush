@@ -46,6 +46,24 @@ function onTap() {
     :aria-label="`Report fire, ${tapsLeft} taps remaining`"
     @click="onTap"
   >
+    <svg
+      class="fyrush-report-ring-text"
+      viewBox="0 0 296 296"
+      aria-hidden="true"
+    >
+      <defs>
+        <path
+          id="fyrush-ring-text-path"
+          d="M148,148 m-104,0 a104,104 0 1,1 208,0 a104,104 0 1,1 -208,0"
+        />
+      </defs>
+      <text>
+        <textPath
+          href="#fyrush-ring-text-path"
+          startOffset="0"
+        >3 TAP&nbsp;·&nbsp;3 TAP&nbsp;·&nbsp;3 TAP&nbsp;·&nbsp;3 TAP&nbsp;·&nbsp;3 TAP&nbsp;·&nbsp;3 TAP&nbsp;·&nbsp;3 TAP&nbsp;·&nbsp;3 TAP&nbsp;·&nbsp;3 TAP&nbsp;·&nbsp;</textPath>
+      </text>
+    </svg>
     <span class="fyrush-report-core">
       <UIcon
         name="i-lucide-flame"
