@@ -1,6 +1,8 @@
 <script setup lang="ts">
 const route = useRoute()
 
+const legalNoticeOpen = ref(true)
+
 function continueWithGoogle() {
   if (import.meta.client)
     window.location.assign('/auth/google')
@@ -77,5 +79,44 @@ const oauthErrorMessage = computed(() => {
         </div>
       </UCard>
     </UContainer>
+
+    <UModal
+      v-model:open="legalNoticeOpen"
+      title="Warning"
+      :dismissible="false"
+      :overlay="true"
+    >
+      <template #body>
+        <div class="flex items-start gap-3">
+          <UIcon
+            name="i-lucide-triangle-alert"
+            class="size-5 shrink-0 text-warning"
+          />
+          <div class="text-sm text-muted space-y-3">
+            <p>
+              All activities, user data, and submission logs are recorded and
+              processed in compliance with Republic Act No. 10175 (Cybercrime
+              Prevention Act of 2012) and Republic Act No. 10173 (Data Privacy
+              Act of 2012).
+            </p>
+            <p>
+              Misrepresentation or submission of false reports may lead to the
+              suspension of access and potential legal action under applicable
+              laws.
+            </p>
+          </div>
+        </div>
+      </template>
+      <template #footer>
+        <UButton
+          color="error"
+          variant="solid"
+          block
+          @click="legalNoticeOpen = false"
+        >
+          I understand
+        </UButton>
+      </template>
+    </UModal>
   </div>
 </template>
