@@ -49,10 +49,10 @@ function onTap() {
     <span class="fyrush-report-core">
       <UIcon
         name="i-lucide-flame"
-        class="size-14 text-white"
+        class="size-16 text-white"
       />
-      <span class="text-2xl font-black tracking-tight leading-none">REPORT</span>
-      <span class="text-2xl font-black tracking-tight leading-none">FIRE</span>
+      <span class="text-3xl font-black tracking-tight leading-none">REPORT</span>
+      <span class="text-3xl font-black tracking-tight leading-none">FIRE</span>
     </span>
   </button>
 </template>

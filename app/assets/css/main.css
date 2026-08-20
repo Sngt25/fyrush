@@ -55,8 +55,8 @@ body {
 
 .fyrush-report-ring {
   position: relative;
-  width: 15.5rem;
-  height: 15.5rem;
+  width: 18.5rem;
+  height: 18.5rem;
   border-radius: 9999px;
   border: none;
   background:
@@ -68,8 +68,8 @@ body {
 }
 
 .fyrush-report-core {
-  width: 11.6rem;
-  height: 11.6rem;
+  width: 16rem;
+  height: 16rem;
   border-radius: 9999px;
   background: linear-gradient(180deg, #e4242d 0, #ca151e 100%);
   border: 5px solid #f6bcc0;

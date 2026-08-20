@@ -97,13 +97,13 @@ function completionDuration(dispatchedAt: number | null, closedAt: number | null
       />
     </div>
 
-    <p class="text-center text-sm text-muted">
+    <p class="text-center text-lg font-bold text-(--fyrush-ink)">
       Tap 3 TIMES to send Alert
     </p>
 
     <div class="space-y-3">
       <div class="flex items-center justify-between gap-2">
-        <h2 class="font-bold text-lg">
+        <h2 class="font-bold text-lg text-(--fyrush-ink)">
           History Log
         </h2>
         <div class="flex gap-2">
