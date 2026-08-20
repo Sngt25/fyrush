@@ -8,6 +8,7 @@ const props = withDefaults(defineProps<{
 defineEmits<{
   signOut: []
   installApp: []
+  help: []
 }>()
 </script>
 
@@ -18,6 +19,13 @@ defineEmits<{
         Fyrush
       </p>
       <div class="flex items-center gap-2">
+        <UButton
+          color="neutral"
+          variant="ghost"
+          icon="i-lucide-circle-help"
+          aria-label="Show tutorial"
+          @click="$emit('help')"
+        />
         <UButton
           v-if="props.showInstall"
           color="neutral"

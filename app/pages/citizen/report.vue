@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from '@nuxt/ui'
+import { useLocalStorage } from '@vueuse/core'
 import { BARANGAY_KALIPAY_CENTER, INCIDENT_STATUS, type IncidentFeedItem } from '#shared/fyrush'
 
 const route = useRoute()
@@ -22,6 +23,7 @@ const pending = ref(false)
 const manualMarker = ref<[number, number]>([BARANGAY_KALIPAY_CENTER.lng, BARANGAY_KALIPAY_CENTER.lat])
 const description = ref('')
 const statusMessage = ref('Checking your session...')
+const onboarded = useLocalStorage('fyrush.onboarding-seen', false)
 
 const activeTab = computed<'dashboard' | 'history'>(() =>
   route.query.tab === 'history' ? 'history' : 'dashboard'
@@ -144,9 +146,21 @@ onMounted(async () => {
   queuePushSubscriptionToast()
   queueNotificationBlockedToast()
 
+  if (onboarded.value) {
+    locationPromptOpen.value = true
+    statusMessage.value = 'Confirm where the fire is, then tap REPORT FIRE three times quickly.'
+  }
+})
+
+function handleOnboardingDone() {
+  onboarded.value = true
   locationPromptOpen.value = true
   statusMessage.value = 'Confirm where the fire is, then tap REPORT FIRE three times quickly.'
-})
+}
+
+function showOnboarding() {
+  onboarded.value = false
+}
 
 onBeforeUnmount(() => {
   if (pushSubscriptionToastTimer)
@@ -376,6 +390,7 @@ async function signOut() {
       <CitizenReportMobileHeader
         :show-install="canInstall"
         @install-app="handleInstallClick"
+        @help="showOnboarding"
         @sign-out="signOut"
       />
 
@@ -429,6 +444,7 @@ async function signOut() {
         :show-install="canInstall"
         @install-app="handleInstallClick"
         @open-location-prompt="locationPromptOpen = true"
+        @help="showOnboarding"
         @sign-out="signOut"
       />
 
@@ -496,5 +512,12 @@ async function signOut() {
       @confirm-set-location="confirmSetLocation"
       @confirm-manual-location="confirmManualLocation"
     />
+
+    <ClientOnly>
+      <CitizenReportOnboarding
+        v-if="!onboarded"
+        @done="handleOnboardingDone"
+      />
+    </ClientOnly>
   </div>
 </template>

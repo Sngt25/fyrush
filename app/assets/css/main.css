@@ -102,3 +102,35 @@ body {
     transform: scale(1.03);
   }
 }
+
+.onboarding-target {
+  position: relative;
+}
+
+.onboarding-target::after {
+  content: "";
+  position: absolute;
+  inset: -10px;
+  border-radius: inherit;
+  border: 3px solid var(--fyrush-gold);
+  box-shadow: 0 0 0 6px rgb(244 182 58 / 25%);
+  animation: onboardingPulse 1.3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.onboarding-dim {
+  opacity: 0.35;
+  transition: opacity 0.25s ease;
+}
+
+@keyframes onboardingPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.06);
+    opacity: 0.55;
+  }
+}

@@ -9,6 +9,7 @@ defineEmits<{
   openLocationPrompt: []
   signOut: []
   installApp: []
+  help: []
 }>()
 </script>
 
@@ -24,6 +25,13 @@ defineEmits<{
         </p>
       </div>
       <div class="flex items-center gap-2">
+        <UButton
+          color="neutral"
+          variant="ghost"
+          icon="i-lucide-circle-help"
+          aria-label="Show tutorial"
+          @click="$emit('help')"
+        />
         <UButton
           v-if="props.showInstall"
           color="neutral"
