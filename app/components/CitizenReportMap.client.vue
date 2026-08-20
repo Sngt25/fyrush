@@ -7,6 +7,7 @@ const props = withDefaults(defineProps<{
   manualMarker: [number, number]
   userHasRegisteredPoint: boolean
   registeredPoint: [number, number] | null
+  showManualMarker?: boolean
   bfpSharedPoints?: Array<{
     incidentId: string
     latitude: number
@@ -23,6 +24,7 @@ const props = withDefaults(defineProps<{
 }>(), {
   bfpSharedPoints: () => [],
   incidentPins: () => [],
+  showManualMarker: true,
   mapHeight: '24rem'
 })
 
@@ -51,7 +53,10 @@ function onMapClick(event: unknown) {
         layer-type="base"
         name="OpenStreetMap"
       />
-      <LMarker :lat-lng="[props.manualMarker[1], props.manualMarker[0]]" />
+      <LMarker
+        v-if="props.showManualMarker"
+        :lat-lng="[props.manualMarker[1], props.manualMarker[0]]"
+      />
 
       <LMarker
         v-for="incidentPin in props.incidentPins"

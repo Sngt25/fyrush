@@ -6,7 +6,15 @@ import { USER_ROLE } from '#shared/fyrush'
 import { db, schema } from 'hub:db'
 
 function mapUser(row: typeof schema.users.$inferSelect): AuthUser {
-  const profileComplete = Boolean(row.profileComplete && row.mobile?.trim() && row.address?.trim())
+  const role = row.role as UserRole
+  const needsRegisteredPoint = role === USER_ROLE.CITIZEN || role === USER_ROLE.POINT_PERSON
+  const hasRegisteredPoint = typeof row.registeredLat === 'number' && typeof row.registeredLng === 'number'
+  const profileComplete = Boolean(
+    row.profileComplete
+    && row.mobile?.trim()
+    && row.address?.trim()
+    && (!needsRegisteredPoint || hasRegisteredPoint)
+  )
 
   return {
     id: row.id,

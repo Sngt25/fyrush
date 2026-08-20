@@ -15,8 +15,8 @@ export default defineEventHandler(async (event) => {
   }>(event)
 
   const useRegistered = body.useRegistered !== false
-  const latitude = useRegistered ? BARANGAY_KALIPAY_CENTER.lat : body.latitude
-  const longitude = useRegistered ? BARANGAY_KALIPAY_CENTER.lng : body.longitude
+  const latitude = useRegistered ? (user.registeredLat ?? BARANGAY_KALIPAY_CENTER.lat) : body.latitude
+  const longitude = useRegistered ? (user.registeredLng ?? BARANGAY_KALIPAY_CENTER.lng) : body.longitude
 
   if (typeof latitude !== 'number' || typeof longitude !== 'number') {
     throw createError({
@@ -25,7 +25,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const address = body.address?.trim() || (useRegistered ? 'Barangay Kalipay set location' : 'Pinned fire location') || 'Unknown location'
+  const address = body.address?.trim() || (useRegistered ? (user.address?.trim() || 'Registered set location') : 'Pinned fire location') || 'Unknown location'
 
   const description = body.description?.trim() || null
 
