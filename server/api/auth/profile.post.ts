@@ -22,11 +22,19 @@ export default defineEventHandler(async (event) => {
   const registeredLat = typeof body.registeredLat === 'number' ? body.registeredLat : user.registeredLat
   const registeredLng = typeof body.registeredLng === 'number' ? body.registeredLng : user.registeredLng
   const hasRegisteredPoint = typeof registeredLat === 'number' && typeof registeredLng === 'number'
+  const hasIdPhoto = Boolean(user.idPhotoPathname?.trim())
 
   if (needsRegisteredPoint && !hasRegisteredPoint) {
     throw createError({
       statusCode: 400,
       statusMessage: 'Confirm your location on the map before continuing.'
+    })
+  }
+
+  if (needsRegisteredPoint && !hasIdPhoto) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Upload a valid ID photo before continuing.'
     })
   }
 

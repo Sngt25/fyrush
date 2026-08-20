@@ -36,6 +36,13 @@
       "when": 1784695926753,
       "tag": "0004_messy_rogue",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1787202052496,
+      "tag": "0005_military_sphinx",
+      "breakpoints": true
     }
   ]
 }

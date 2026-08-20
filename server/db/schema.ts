@@ -10,6 +10,7 @@ export const users = sqliteTable('users', {
   authProvider: text('auth_provider').notNull().default('legacy'),
   mobile: text('mobile'),
   address: text('address'),
+  idPhotoPathname: text('id_photo_pathname'),
   profileComplete: integer('profile_complete').notNull().default(0),
   profileCompletedAt: integer('profile_completed_at'),
   registeredLat: real('registered_lat'),

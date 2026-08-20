@@ -20,6 +20,12 @@
       "id": "0fc8cc6837d141e08aba68bcd5d8683a"
     }
   ],
+  "r2_buckets": [
+    {
+      "binding": "BLOB",
+      "bucket_name": "fyrush"
+    }
+  ],
   "durable_objects": {
     "bindings": [{ "name": "$DurableObject", "class_name": "$DurableObject" }]
   },

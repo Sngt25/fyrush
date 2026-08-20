@@ -23,6 +23,11 @@ const draftPin = ref<[number, number]>([BARANGAY_KALIPAY_CENTER.lng, BARANGAY_KA
 const gpsStatus = ref<'idle' | 'loading' | 'success' | 'error'>('idle')
 const gpsError = ref('')
 
+const idPhotoPathname = ref<string | null>(null)
+const idFile = ref<File | null>(null)
+const idUploading = ref(false)
+const idUploadError = ref('')
+
 watch(user, (value) => {
   if (!value)
     return
@@ -30,6 +35,7 @@ watch(user, (value) => {
   form.name = value.name ?? ''
   form.mobile = value.mobile ?? ''
   form.address = value.address ?? ''
+  idPhotoPathname.value = value.idPhotoPathname ?? null
 
   if (typeof value.registeredLat === 'number' && typeof value.registeredLng === 'number') {
     const point: [number, number] = [value.registeredLng, value.registeredLat]
@@ -37,6 +43,31 @@ watch(user, (value) => {
     draftPin.value = point
   }
 }, { immediate: true })
+
+async function uploadIdPhoto(file: File) {
+  idUploadError.value = ''
+  idUploading.value = true
+
+  try {
+    const formData = new FormData()
+    formData.append('file', file)
+    const response = await $fetch<{ ok: boolean, pathname: string }>('/api/users/id-photo', {
+      method: 'POST',
+      body: formData
+    })
+    idPhotoPathname.value = response.pathname
+  } catch (err) {
+    idUploadError.value = toMessage(err, 'Unable to upload ID photo.')
+  } finally {
+    idUploading.value = false
+    idFile.value = null
+  }
+}
+
+watch(idFile, (file) => {
+  if (file)
+    uploadIdPhoto(file)
+})
 
 function onDraftPinChange(value: [number, number]) {
   draftPin.value = value
@@ -73,6 +104,16 @@ async function submit() {
       description: 'Use "Use my current location" or tap the map to confirm where you are, then save.',
       color: 'warning',
       icon: 'i-lucide-map-pin'
+    })
+    return
+  }
+
+  if (needsRegisteredPoint.value && !idPhotoPathname.value) {
+    toast.add({
+      title: 'Upload your ID',
+      description: 'Upload a clear photo of a valid government-issued ID before saving.',
+      color: 'warning',
+      icon: 'i-lucide-id-card'
     })
     return
   }
@@ -131,6 +172,14 @@ async function submit() {
         </template>
 
         <div class="space-y-4 bred500">
+          <UAlert
+            color="warning"
+            variant="subtle"
+            icon="i-lucide-shield-alert"
+            title="Accuracy and truthfulness"
+            description="Please ensure that all information and reports submitted through this system are accurate and truthful. Providing false, misleading, or fraudulent data is strictly prohibited and monitored."
+          />
+
           <UFormField
             label="Full name"
             required
@@ -166,6 +215,46 @@ async function submit() {
               placeholder="Enter your full address"
               class="w-full"
             />
+          </UFormField>
+
+          <UFormField
+            v-if="needsRegisteredPoint"
+            label="Government ID"
+            required
+            hint="Upload a clear photo of a valid government-issued ID (PNG, JPG, or WebP, up to 4MB)."
+            class="w-full"
+          >
+            <div class="space-y-3">
+              <UFileUpload
+                v-model="idFile"
+                accept="image/png,image/jpeg,image/webp"
+                :multiple="false"
+                icon="i-lucide-id-card"
+                :label="idPhotoPathname ? 'Replace ID photo' : 'Upload ID photo'"
+                :description="idPhotoPathname ? 'Your ID is on file. Upload a new photo to replace it.' : 'PNG, JPG, or WebP, up to 4MB.'"
+              />
+
+              <p
+                v-if="idUploading"
+                class="text-xs text-muted"
+              >
+                Uploading ID photo...
+              </p>
+
+              <img
+                v-if="idPhotoPathname && user?.id"
+                :src="`/api/users/id-photo?userId=${user.id}`"
+                alt="Uploaded government ID"
+                class="max-h-64 w-full rounded-lg border border-default bg-muted/40 object-contain"
+              >
+
+              <p
+                v-if="idUploadError"
+                class="text-sm text-error"
+              >
+                {{ idUploadError }}
+              </p>
+            </div>
           </UFormField>
 
           <UFormField

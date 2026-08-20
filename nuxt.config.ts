@@ -1,5 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 const useLocalHubDb = process.env.NODE_ENV !== 'production' && process.env.NUXT_HUB_USE_LOCAL_DB !== 'false'
+const useLocalHubBlob = process.env.NODE_ENV !== 'production' && process.env.NUXT_HUB_USE_LOCAL_BLOB !== 'false'
 
 export default defineNuxtConfig({
 
@@ -62,6 +63,16 @@ export default defineNuxtConfig({
         : {}),
       applyMigrationsDuringBuild: false
     },
+    blob: useLocalHubBlob
+      ? {
+          driver: 'fs',
+          dir: process.env.NUXT_HUB_LOCAL_BLOB_DIR || '.data/blobs'
+        }
+      : {
+          driver: 'cloudflare-r2',
+          bucketName: 'fyrush',
+          binding: 'BLOB'
+        },
     kv: true
   },
 

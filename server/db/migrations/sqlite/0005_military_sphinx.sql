@@ -1,0 +1,1 @@
+ALTER TABLE `users` ADD `id_photo_pathname` text;

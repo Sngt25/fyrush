@@ -34,6 +34,15 @@ export interface AuthUser {
   profileComplete: boolean
   registeredLat: number | null
   registeredLng: number | null
+  idPhotoPathname: string | null
+}
+
+export interface ReporterInfo {
+  userId: string
+  userName: string
+  userMobile: string | null
+  userRole: string
+  userPhotoPathname: string | null
 }
 
 export interface IncidentFeedItem {

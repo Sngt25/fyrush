@@ -16,7 +16,7 @@ const props = withDefaults(defineProps<{
     closedAt: number | null
     invalidatedAt: number | null
     timerStartedAt: number | null
-    reportingUsers?: Array<{ userId: string, userName: string, userMobile: string | null }>
+    reportingUsers?: Array<{ userId: string, userName: string, userMobile: string | null, userRole?: string, userPhotoPathname?: string | null }>
     hasManualPinnedReport?: boolean
     manualPinnedReportCount?: number
   }
@@ -30,6 +30,14 @@ const emit = defineEmits<{
 }>()
 
 const mapOpen = ref(false)
+const selectedReporter = ref<{ userId: string, userName: string, userMobile: string | null, userPhotoPathname: string | null } | null>(null)
+const reporterModalOpen = computed({
+  get: () => selectedReporter.value !== null,
+  set: (open: boolean) => {
+    if (!open)
+      selectedReporter.value = null
+  }
+})
 
 const timestampFormat = {
   month: 'short',
@@ -213,7 +221,14 @@ function incidentCompletionDuration(incident: { dispatchedAt: number | null, clo
             :key="user.userId"
             class="inline-flex items-center gap-1 rounded-full border border-default bg-muted px-2 py-0.5 mr-1 mb-1"
           >
-            <span class="font-semibold">{{ user.userName }}</span>
+            <UButton
+              color="primary"
+              variant="link"
+              size="xs"
+              :label="user.userName"
+              class="font-semibold"
+              @click="selectedReporter = { userId: user.userId, userName: user.userName, userMobile: user.userMobile, userPhotoPathname: user.userPhotoPathname ?? null }"
+            />
             <span
               v-if="user.userMobile"
               class="text-muted"
@@ -248,6 +263,45 @@ function incidentCompletionDuration(incident: { dispatchedAt: number | null, clo
           ]"
           map-height="22rem"
         />
+      </template>
+    </UModal>
+
+    <UModal
+      v-model:open="reporterModalOpen"
+      title="Reporter Details"
+    >
+      <template #body>
+        <div
+          v-if="selectedReporter"
+          class="space-y-4"
+        >
+          <div class="space-y-1">
+            <p class="text-lg font-bold">
+              {{ selectedReporter.userName }}
+            </p>
+            <p class="text-sm text-muted">
+              {{ selectedReporter.userMobile || 'No mobile number' }}
+            </p>
+          </div>
+
+          <div v-if="selectedReporter.userPhotoPathname">
+            <p class="text-xs font-semibold text-muted uppercase tracking-wide mb-2">
+              Government ID
+            </p>
+            <img
+              :src="`/api/users/id-photo?userId=${selectedReporter.userId}`"
+              alt="Government ID"
+              class="max-h-96 w-full rounded-lg border border-default bg-muted/40 object-contain"
+            >
+          </div>
+
+          <p
+            v-else
+            class="text-sm text-muted"
+          >
+            No ID photo on file for this reporter.
+          </p>
+        </div>
       </template>
     </UModal>
   </UCard>

@@ -9,16 +9,17 @@ function mapUser(row: typeof schema.users.$inferSelect): AuthUser {
   const role = row.role as UserRole
   const needsRegisteredPoint = role === USER_ROLE.CITIZEN || role === USER_ROLE.POINT_PERSON
   const hasRegisteredPoint = typeof row.registeredLat === 'number' && typeof row.registeredLng === 'number'
+  const hasIdPhoto = Boolean(row.idPhotoPathname?.trim())
   const profileComplete = Boolean(
     row.profileComplete
     && row.mobile?.trim()
     && row.address?.trim()
-    && (!needsRegisteredPoint || hasRegisteredPoint)
+    && (!needsRegisteredPoint || (hasRegisteredPoint && hasIdPhoto))
   )
 
   return {
     id: row.id,
-    role: row.role as UserRole,
+    role,
     name: row.name,
     email: row.email,
     mobile: row.mobile,
@@ -26,7 +27,8 @@ function mapUser(row: typeof schema.users.$inferSelect): AuthUser {
     authProvider: row.authProvider === 'google' ? 'google' : 'legacy',
     profileComplete,
     registeredLat: row.registeredLat,
-    registeredLng: row.registeredLng
+    registeredLng: row.registeredLng,
+    idPhotoPathname: row.idPhotoPathname
   }
 }
 
